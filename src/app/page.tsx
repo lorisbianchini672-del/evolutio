@@ -11,7 +11,7 @@ const TRADES = ["Boulangeries", "Restaurants", "Plombiers", "Instituts de beaut�
 const COMPARE = [
   { label: "Repère les nouveaux avis", gpt: "Non", evo: "Oui, avec alerte" },
   { label: "Publie sur votre fiche", gpt: "Copier-coller", evo: "Un clic, ou seul" },
-  { label: "Garde votre ton", gpt: "À réexpliquer", evo: "Réglé une fois" },
+  { label: "Garde votre ton", gpt: "À réexpliquer", evo: "Calibré tout seul" },
   { label: "Vous apporte des avis", gpt: "Non", evo: "QR code, lien, e-mail" },
   { label: "Résume ce que disent vos clients", gpt: "Avis à coller un par un", evo: "Synthèse en un clic" },
 ];
@@ -254,8 +254,8 @@ export default function LandingPage() {
             <ol className="steps" style={{ listStyle: "none", margin: 0, padding: 0 }}>
               {[
                 { t: "Connectez votre fiche Google", d: "Vous autorisez l'accès depuis l'écran officiel de Google. Aucun mot de passe à nous confier." },
-                { t: "Réglez votre ton", d: "Votre métier, votre signature, le contact à proposer quand un client est déçu." },
-                { t: "Validez en un clic", d: "Chaque réponse vous attend, prête. Sous 4 étoiles, rien ne part sans vous." },
+                { t: "Il se calibre tout seul", d: "L'outil se calibre tout seul sur votre style d'écriture déjà utilisé dans vos précédentes réponses." },
+                { t: "Validez en un clic", d: "Chaque réponse vous attend dans votre fil WhatsApp. Rien ne part sans vous." },
               ].map((step, i) => (
                 <li key={step.t} className="step" data-rv style={{ "--d": `${i * 0.1}s`, display: "flex", flexDirection: "column", gap: 14 } as React.CSSProperties}>
                   <span className="num" aria-hidden="true">
@@ -364,7 +364,7 @@ export default function LandingPage() {
               <span className="serif shine">sans réponse.</span>
             </h2>
             <p className="lead" style={{ maxWidth: 520 }}>
-              Connectez votre fiche, réglez votre ton, et laissez {APP_NAME} s&apos;occuper du reste.
+              Connectez votre fiche, et laissez {APP_NAME} s&apos;occuper du reste.
             </p>
             <Link href="/inscription" className="btn btn-light btn-lg">
               Essayer {TRIAL_DAYS} jours gratuitement
