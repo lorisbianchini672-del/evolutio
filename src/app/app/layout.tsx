@@ -1,17 +1,11 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { signOutAction } from "@/app/(auth)/actions";
+import { AppNav } from "@/components/app-nav";
+import { LogoMark } from "@/components/logo-mark";
 import { APP_NAME, billingEnabled } from "@/lib/config";
 import { isLocalMode } from "@/lib/local-env";
 import { requireAccount } from "@/lib/session";
-
-const NAV = [
-  { href: "/app", label: "Avis" },
-  { href: "/app/analyse", label: "Analyse" },
-  { href: "/app/collecte", label: "Collecte" },
-  { href: "/app/reglages", label: "Réglages" },
-  { href: "/app/abonnement", label: "Abonnement" },
-];
 
 function daysLeft(iso: string | null): number | null {
   if (!iso) return null;
@@ -23,29 +17,40 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   const trialDays = subscription?.status === "trialing" ? daysLeft(subscription.trial_end) : null;
 
   return (
-    <>
-      <header className="border-b border-stone-200 bg-white">
-        <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
-          <Link href="/app" className="brand">
-            {APP_NAME}
+    <div className="appx">
+      <div className="appx-glow" aria-hidden="true" />
+
+      <header className="appx-bar">
+        <div className="appx-bar-in">
+          <Link href="/app" className="appx-logo" aria-label={`${APP_NAME}, avis`}>
+            <LogoMark size={32} />
           </Link>
-          <nav className="flex flex-1 gap-1 text-sm">
-            {NAV.map((item) => (
-              <Link key={item.href} href={item.href} className="rounded-full px-3.5 py-1.5 text-stone-700 hover:bg-stone-100">
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-          <span className="hidden text-sm text-stone-500 sm:inline">{account.email}</span>
+          <AppNav variant="title" />
+          <AppNav variant="top" />
+          <span className="appx-email">{account.email}</span>
           <form action={signOutAction}>
-            <button className="btn btn-quiet" type="submit">
-              Déconnexion
+            <button className="appx-out" type="submit" aria-label="Se déconnecter">
+              <svg
+                viewBox="0 0 24 24"
+                width="18"
+                height="18"
+                aria-hidden="true"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.7"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M14.5 5.5h-7a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h7" />
+                <path d="M11 12h9M17 8.5l3.5 3.5-3.5 3.5" />
+              </svg>
+              <span>Déconnexion</span>
             </button>
           </form>
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-5xl flex-1 space-y-6 px-4 py-8">
+      <main className="appx-main">
         {!billingEnabled() && (
           <p className="notice-info">
             Mode découverte : Stripe n&apos;est pas encore connecté, tout est ouvert sans paiement.{" "}
@@ -58,14 +63,17 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
         )}
         {trialDays !== null && (
           <p className="notice-info">
-            Essai gratuit : {trialDays} jour{trialDays > 1 ? "s" : ""} restant{trialDays > 1 ? "s" : ""}.{" "}
-            <Link href="/app/abonnement" className="font-medium underline">
+            Essai gratuit : {trialDays} jour{trialDays > 1 ? "s" : ""} restant
+            {trialDays > 1 ? "s" : ""}.{" "}
+            <Link href="/app/abonnement" className="link">
               Ajouter un moyen de paiement
             </Link>
           </p>
         )}
         {children}
       </main>
-    </>
+
+      <AppNav variant="bottom" />
+    </div>
   );
 }

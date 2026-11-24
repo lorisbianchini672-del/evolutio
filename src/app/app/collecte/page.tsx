@@ -56,7 +56,7 @@ export default async function CollectPage({
         <section key={location.id} className="card grid gap-6 md:grid-cols-[12rem_1fr]">
           <div className="space-y-2 text-center">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={qr} alt={`QR code vers la page d'avis de ${location.title}`} className="mx-auto w-44 rounded-lg border border-stone-200" />
+            <img src={qr} alt={`QR code vers la page d'avis de ${location.title}`} className="qr mx-auto w-44" />
             <a href={qr} download={`qr-avis-${location.slug}.png`} className="btn btn-secondary w-full">
               Télécharger le QR code
             </a>

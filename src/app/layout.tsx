@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { APP_NAME } from "@/lib/config";
 import { ensureLocalEnv } from "@/lib/local-env";
@@ -8,6 +8,13 @@ export const metadata: Metadata = {
   title: `${APP_NAME} · Réponses et collecte d'avis Google`,
   description:
     "Evolutio rédige la réponse à chaque avis Google dans votre ton, vous alerte quand un client est déçu et vous aide à récolter de nouveaux avis.",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#060608",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

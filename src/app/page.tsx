@@ -4,17 +4,10 @@ import { HeroReel } from "@/components/landing/hero-reel";
 import { Lacquer } from "@/components/landing/lacquer";
 import { LandingMotion } from "@/components/landing/motion";
 import { Simulator } from "@/components/landing/simulator";
+import { LogoMark } from "@/components/logo-mark";
 import { APP_NAME, PLAN_IDS, PLANS, TRIAL_DAYS } from "@/lib/config";
 
 const TRADES = ["Boulangeries", "Restaurants", "Plombiers", "Instituts de beauté", "Agences immobilières", "Garages", "Fleuristes", "Coiffeurs", "Électriciens", "Caves à vin"];
-
-const COMPARE = [
-  { label: "Repère les nouveaux avis", gpt: "Non", evo: "Oui, avec alerte" },
-  { label: "Publie sur votre fiche", gpt: "Copier-coller", evo: "Un clic, ou seul" },
-  { label: "Garde votre ton", gpt: "À réexpliquer", evo: "Réglé une fois" },
-  { label: "Vous apporte des avis", gpt: "Non", evo: "QR code, lien, e-mail" },
-  { label: "Résume ce que disent vos clients", gpt: "Avis à coller un par un", evo: "Synthèse en un clic" },
-];
 
 const FAQ = [
   {
@@ -22,11 +15,6 @@ const FAQ = [
     a: "Non. Google interdit de ne solliciter que les clients contents ou de décourager les avis négatifs, et une fiche qui le fait risque le retrait de ses avis. Chaque client reçoit le même lien, avec la possibilité de vous écrire en privé.",
   },
   { q: "Puis-je relire avant publication ?", a: "Oui, c'est le réglage par défaut. La publication automatique est une option, réservée aux avis 4 et 5 étoiles." },
-  {
-    q: "Dois-je vous donner mon mot de passe Google ?",
-    a: "Non. Vous autorisez Evolutio depuis l'écran de connexion officiel de Google, et vous pouvez retirer cet accès à tout moment depuis votre compte Google.",
-  },
-  { q: "Y a-t-il un engagement ?", a: `Aucun. L'essai dure ${TRIAL_DAYS} jours sans carte bancaire, puis l'abonnement est mensuel et se résilie en ligne.` },
 ];
 
 /** Motif décoratif en forme de QR code (illustration, pas un vrai code). */
@@ -45,16 +33,6 @@ function qrCells(): boolean[] {
 }
 
 /** Logo d'Evolutio : un « e. », la réponse qui part. */
-function LogoMark() {
-  return (
-    <svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true">
-      <rect x=".5" y=".5" width="31" height="31" rx="9.5" fill="#0d0d10" stroke="rgba(255,255,255,.12)" />
-      <path d="M7.6 15.6H23.4A7.8 7.8 0 1 0 21.1 21.3" fill="none" stroke="#f3f0ea" strokeWidth="2.7" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="24.6" cy="24.4" r="1.9" fill="#a996f0" />
-    </svg>
-  );
-}
-
 const HEADLINE = ["Chaque", "avis", "mérite", "une"];
 
 export default function LandingPage() {
@@ -70,7 +48,6 @@ export default function LandingPage() {
           <nav className="links" aria-label="Navigation principale">
             <a href="#fonctions">Fonctions</a>
             <a href="#demo">Démonstration</a>
-            <a href="#etapes">Mise en route</a>
             <a href="#tarifs">Tarifs</a>
             <a href="#questions">Questions</a>
           </nav>
@@ -103,8 +80,7 @@ export default function LandingPage() {
               </span>
             </h1>
             <p className="lead rise" style={{ animationDelay: "0.8s", maxWidth: 640 }}>
-              {APP_NAME} la rédige dans votre ton, vous alerte quand un client est déçu et vous aide à récolter de
-              nouveaux avis. Dans les règles de Google.
+              {APP_NAME} rédige vos réponses aux avis, dans votre ton.
             </p>
             <div className="cta-row rise" style={{ animationDelay: "0.95s" }}>
               <Link href="/inscription" className="btn btn-light btn-lg">
@@ -140,16 +116,6 @@ export default function LandingPage() {
           <p className="sr-only">Pour les {TRADES.join(", ").toLowerCase()}.</p>
         </section>
 
-        <section aria-label="Pourquoi répondre" style={{ paddingTop: 0 }}>
-          <div className="wrap">
-            <p className="manifesto">
-              Un avis sans réponse, c&apos;est une conversation laissée en plan. Vos futurs clients lisent les avis, et
-              vos réponses aussi. {APP_NAME} fait en sorte qu&apos;aucune ne reste en attente, sans que vous y passiez
-              vos soirées.
-            </p>
-          </div>
-        </section>
-
         <section id="fonctions" aria-labelledby="t-fonctions" style={{ paddingTop: 0, scrollMarginTop: 70 }}>
           <div className="wrap" style={{ display: "flex", flexDirection: "column", gap: 44 }}>
             <div data-rv style={{ maxWidth: 780, display: "flex", flexDirection: "column", gap: 14 }}>
@@ -167,16 +133,12 @@ export default function LandingPage() {
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                   <h3 className="h-md">Des réponses dans votre ton, pas dans celui d&apos;un robot.</h3>
-                  <p style={{ maxWidth: "52ch" }}>
-                    Chaque réponse reprend un détail de l&apos;avis, dans la langue du client, avec votre signature.
-                    Aucune promesse que vous n&apos;avez pas faite.
-                  </p>
                 </div>
               </article>
 
               <article className="tile dark" data-rv style={{ "--d": "0.08s" } as React.CSSProperties}>
                 <div style={{ position: "relative", height: 96 }} aria-hidden="true">
-                  <svg className="bell" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#a996f0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg className="bell" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#e3a964" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
                     <path d="M10.3 21a1.9 1.9 0 0 0 3.4 0" />
                   </svg>
@@ -186,7 +148,6 @@ export default function LandingPage() {
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                   <h3 className="h-md">Les avis négatifs d&apos;abord.</h3>
-                  <p>Alerte immédiate, brouillon calme déjà prêt, invitation à poursuivre en privé.</p>
                 </div>
               </article>
 
@@ -201,7 +162,6 @@ export default function LandingPage() {
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                   <h3 className="h-md">QR code et affiche prête à imprimer.</h3>
-                  <p>À poser en caisse. Le client scanne et arrive sur votre page d&apos;avis.</p>
                 </div>
               </article>
 
@@ -210,7 +170,7 @@ export default function LandingPage() {
                   {[0, 0.5, 1].map((delay, i) => (
                     <div key={delay} className="mail">
                       <span style={{ flex: 1 }}>client-{i + 1}@exemple.fr</span>
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a996f0" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e3a964" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                         <path pathLength={1} d="M5 12.5l4.5 4.5L19 7.5" style={{ animationDelay: `${delay}s` }} />
                       </svg>
                     </div>
@@ -218,7 +178,6 @@ export default function LandingPage() {
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                   <h3 className="h-md">Demandes par e-mail.</h3>
-                  <p>Une demande unique après la prestation. Jamais de relance, jamais de spam.</p>
                 </div>
               </article>
 
@@ -230,7 +189,6 @@ export default function LandingPage() {
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                   <h3 className="h-md">Ce que disent vos clients, en clair.</h3>
-                  <p>Note moyenne, taux de réponse, et une synthèse de vos forces et de vos irritants.</p>
                 </div>
               </article>
             </div>
@@ -243,59 +201,6 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section id="etapes" aria-labelledby="t-etapes" style={{ scrollMarginTop: 52 }}>
-          <div className="wrap" style={{ display: "flex", flexDirection: "column", gap: 56 }}>
-            <div data-rv style={{ maxWidth: 760, display: "flex", flexDirection: "column", gap: 14 }}>
-              <p className="eyebrow">Mise en route</p>
-              <h2 id="t-etapes" className="h-lg">
-                Trois minutes de réglage. <span className="serif gold-deep">Puis plus rien</span> à surveiller.
-              </h2>
-            </div>
-            <ol className="steps" style={{ listStyle: "none", margin: 0, padding: 0 }}>
-              {[
-                { t: "Connectez votre fiche Google", d: "Vous autorisez l'accès depuis l'écran officiel de Google. Aucun mot de passe à nous confier." },
-                { t: "Réglez votre ton", d: "Votre métier, votre signature, le contact à proposer quand un client est déçu." },
-                { t: "Validez en un clic", d: "Chaque réponse vous attend, prête. Sous 4 étoiles, rien ne part sans vous." },
-              ].map((step, i) => (
-                <li key={step.t} className="step" data-rv style={{ "--d": `${i * 0.1}s`, display: "flex", flexDirection: "column", gap: 14 } as React.CSSProperties}>
-                  <span className="num" aria-hidden="true">
-                    {i + 1}
-                  </span>
-                  <h3 className="h-md">{step.t}</h3>
-                  <p className="lead" style={{ fontSize: "1.05rem" }}>
-                    {step.d}
-                  </p>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </section>
-
-        <section aria-labelledby="t-compare" style={{ paddingTop: 0 }}>
-          <div className="wrap" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 40, alignItems: "center" }}>
-            <div data-rv style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-              <p className="eyebrow">Et ChatGPT, alors ?</p>
-              <h2 id="t-compare" className="h-lg">
-                Rédiger, tout le monde sait. <span className="serif gold-deep">Ne rien oublier</span>, c&apos;est autre chose.
-              </h2>
-            </div>
-            <div className="cmp" role="table" aria-label="Comparaison avec ChatGPT" data-rv>
-              <div className="cmp-row head" role="row">
-                <span role="columnheader" />
-                <span role="columnheader">ChatGPT</span>
-                <span role="columnheader">{APP_NAME}</span>
-              </div>
-              {COMPARE.map((row) => (
-                <div key={row.label} className="cmp-row" role="row">
-                  <span role="rowheader">{row.label}</span>
-                  <span role="cell" className="no">{row.gpt}</span>
-                  <span role="cell" className="yes">{row.evo}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
         <section id="tarifs" aria-labelledby="t-tarifs" style={{ paddingTop: 0, scrollMarginTop: 70 }}>
           <div className="wrap" style={{ display: "flex", flexDirection: "column", gap: 44 }}>
             <div data-rv style={{ textAlign: "center", display: "flex", flexDirection: "column", gap: 14, alignItems: "center" }}>
@@ -303,7 +208,6 @@ export default function LandingPage() {
               <h2 id="t-tarifs" className="h-lg">
                 Simple, mensuel, <span className="serif gold-deep">sans engagement.</span>
               </h2>
-              <p className="lead">Prix hors taxes. {TRIAL_DAYS} jours d&apos;essai sur chaque formule.</p>
             </div>
             <div className="plans">
               {PLAN_IDS.map((id, i) => {
@@ -317,7 +221,7 @@ export default function LandingPage() {
                       <span style={{ color: hot ? "#a8a398" : "var(--mute)" }}> HT / mois</span>
                     </p>
                     <ul>
-                      {plan.features.map((feature) => (
+                      {plan.features.slice(0, 4).map((feature) => (
                         <li key={feature}>{feature}</li>
                       ))}
                     </ul>
@@ -363,9 +267,6 @@ export default function LandingPage() {
               Plus aucun avis <br />
               <span className="serif shine">sans réponse.</span>
             </h2>
-            <p className="lead" style={{ maxWidth: 520 }}>
-              Connectez votre fiche, réglez votre ton, et laissez {APP_NAME} s&apos;occuper du reste.
-            </p>
             <Link href="/inscription" className="btn btn-light btn-lg">
               Essayer {TRIAL_DAYS} jours gratuitement
             </Link>

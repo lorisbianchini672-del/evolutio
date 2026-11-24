@@ -27,38 +27,49 @@ const VIEWS: { id: View; label: string }[] = [
 
 function Stars({ rating }: { rating: number }) {
   return (
-    <span className={rating <= 3 ? "text-red-600" : "text-amber-500"} aria-label={`${rating} sur 5`}>
+    <span className={rating <= 3 ? "stars low" : "stars"} aria-label={`${rating} sur 5`}>
       {"★".repeat(rating)}
-      <span className="text-stone-300">{"★".repeat(5 - rating)}</span>
+      <span className="off">{"★".repeat(5 - rating)}</span>
     </span>
   );
 }
 
 function formatDate(iso: string): string {
-  return new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", year: "numeric" }).format(new Date(iso));
+  return new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short", year: "numeric" }).format(new Date(iso));
 }
 
 function ReviewCard({ review, locationTitle, view }: { review: Review; locationTitle: string; view: View }) {
   const published = review.status === "published";
   return (
-    <article id={`avis-${review.id}`} className="card scroll-mt-6 space-y-3">
-      <header className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+    <article id={`avis-${review.id}`} className="card rv scroll-mt-20 space-y-4">
+      <header className="rv-head">
+        <span className="rv-avatar" aria-hidden="true">
+          {(review.reviewer_name ?? "?").trim().charAt(0).toUpperCase() || "?"}
+        </span>
+        <div className="rv-who">
+          <p className="rv-name">{review.reviewer_name ?? "Client anonyme"}</p>
+          <p className="rv-meta">
+            {formatDate(review.review_created_at)} · {locationTitle}
+          </p>
+        </div>
         <Stars rating={review.rating} />
-        <span className="font-medium">{review.reviewer_name ?? "Client anonyme"}</span>
-        <span className="text-stone-500">{formatDate(review.review_created_at)}</span>
-        <span className="text-stone-500">· {locationTitle}</span>
-        {review.is_demo && <span className="rounded bg-stone-100 px-2 py-0.5 text-xs text-stone-600">Démonstration</span>}
-        {review.status === "ignored" && <span className="rounded bg-stone-100 px-2 py-0.5 text-xs text-stone-600">Ignoré</span>}
       </header>
 
-      <p className="whitespace-pre-line text-stone-800">
+      {(review.is_demo || review.status === "ignored") && (
+        <div className="flex flex-wrap gap-1.5">
+          {review.is_demo && <span className="tag">Démonstration</span>}
+          {review.status === "ignored" && <span className="tag">Ignoré</span>}
+        </div>
+      )}
+
+      <p className="rv-text whitespace-pre-line">
         {review.comment ?? <span className="text-stone-500">Note laissée sans commentaire.</span>}
       </p>
 
       {published ? (
-        <div className="rounded-2xl bg-stone-50 p-4 text-sm">
-          <p className="mb-1 font-medium text-stone-900">Réponse publiée</p>
-          <p className="whitespace-pre-line text-stone-800">{review.reply_text}</p>
+        <div className="reply">
+          <p className="reply-k">Réponse publiée</p>
+          <p className="whitespace-pre-line text-[15px] leading-relaxed">{review.reply_text}</p>
         </div>
       ) : (
         <form className="space-y-3">
@@ -77,7 +88,7 @@ function ReviewCard({ review, locationTitle, view }: { review: Review; locationT
             defaultValue={review.draft_text ?? ""}
             placeholder="Cliquez sur « Rédiger avec l'IA » ou écrivez votre réponse."
           />
-          <div className="flex flex-wrap gap-2">
+          <div className="actions">
             <SubmitButton formAction={publishAction}>
               {review.is_demo ? "Marquer comme publiée" : "Publier sur Google"}
             </SubmitButton>
@@ -130,7 +141,7 @@ export default async function InboxPage({
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
+        <div className="space-y-1">
           <h1 className="page-title">Avis</h1>
           <p className="text-sm text-stone-600">
             {todoCount ?? 0} avis en attente de réponse
@@ -223,15 +234,15 @@ export default async function InboxPage({
 
       {hasLocations && (
         <>
-          <nav className="flex gap-1 text-sm" aria-label="Filtrer les avis">
+          <nav className="seg" aria-label="Filtrer les avis">
             {VIEWS.map((v) => (
               <Link
                 key={v.id}
                 href={v.id === "a-traiter" ? "/app" : `/app?vue=${v.id}`}
-                className={`rounded-full px-3.5 py-1.5 ${view === v.id ? "bg-stone-900 text-white" : "text-stone-700 hover:bg-stone-100"}`}
                 aria-current={view === v.id ? "page" : undefined}
               >
                 {v.label}
+                {v.id === "a-traiter" && (todoCount ?? 0) > 0 && <span className="seg-n">{todoCount}</span>}
               </Link>
             ))}
           </nav>

@@ -26,15 +26,20 @@ export default async function ReviewPage({
   if (!location) notFound();
 
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-6 px-4 py-10">
+    <div className="appx">
+      <div className="appx-glow" aria-hidden="true" />
+      <main className="appx-solo gap-5">
       <div className="text-center">
         <h1 className="page-title">{location.title}</h1>
         <p className="mt-2 text-stone-600">Merci de votre visite. Votre avis nous aide, quel qu&apos;il soit.</p>
       </div>
 
-      <section className="card space-y-3 text-center">
+      <section className="card space-y-4 text-center">
+        <p className="stars stars-lg" aria-hidden="true">
+          ★★★★★
+        </p>
         {location.review_url ? (
-          <a href={location.review_url} className="btn btn-primary w-full py-3 text-base" rel="noreferrer">
+          <a href={location.review_url} className="btn btn-primary btn-xl w-full" rel="noreferrer">
             Laisser un avis sur Google
           </a>
         ) : (
@@ -79,6 +84,7 @@ export default async function ReviewPage({
       </section>
 
       <p className="text-center text-xs text-stone-400">Page fournie par {APP_NAME}</p>
-    </main>
+      </main>
+    </div>
   );
 }

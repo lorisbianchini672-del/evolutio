@@ -750,6 +750,10 @@ body {
   .lp .tile.full {
     grid-column: auto;
   }
+  /* Sur téléphone, les tuiles n'ont plus qu'un titre : on les resserre. */
+  .lp .tile {
+    min-height: 240px;
+  }
 }
 .lp .tones {
   display: flex;
@@ -1109,15 +1113,15 @@ body {
 }
 
 /* ============================================================
-   Direction artistique Evolutio : laque noire, reflets violets, Inter.
+   Direction artistique Evolutio : laque noire, reflets ambre et bleus.
    Ce bloc habille la page d'accueil (.lp) ; les autres pages ne changent pas.
    ============================================================ */
 .lp {
-  --gold: #a996f0;
-  --gold-deep: #cfc3f5;
+  --gold: #e3a964;
+  --gold-deep: #f2d2a2;
   --mute: #8f8b85;
-  --lav: #cfc3f5;
-  --vio: #a996f0;
+  --lav: #f2d2a2;
+  --vio: #e3a964;
   --hair: rgba(255, 255, 255, 0.085);
   background: #050507;
   color: #f3f0ea;
@@ -1263,7 +1267,7 @@ body {
 .lp .window {
   background: #0e0e12;
   color: #f3f0ea;
-  box-shadow: 0 -30px 120px -30px rgba(169, 150, 240, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  box-shadow: 0 -30px 120px -30px rgba(227, 169, 100, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 .lp .window-bar {
   border-bottom-color: var(--hair);
@@ -1340,8 +1344,8 @@ body {
   color: #f3f0ea;
 }
 .lp .tile.goldy {
-  background: radial-gradient(60% 70% at 20% 20%, #8b78d4, transparent 70%),
-    radial-gradient(60% 60% at 90% 85%, #5b6fd0, transparent 70%), linear-gradient(135deg, #6a58b0, #8e65b8 55%, #3a3166);
+  background: radial-gradient(60% 70% at 20% 20%, #c98a3e, transparent 70%),
+    radial-gradient(60% 60% at 90% 85%, #5b6fd0, transparent 70%), linear-gradient(135deg, #2f4a86, #3d5fa3 55%, #3a2a18);
   color: #fff;
   border-color: transparent;
 }
@@ -1353,7 +1357,7 @@ body {
   color: rgba(255, 255, 255, 0.8);
 }
 .lp .tile::before {
-  background: radial-gradient(480px circle at var(--mx, 50%) var(--my, 0%), rgba(207, 195, 245, 0.08), transparent 60%);
+  background: radial-gradient(480px circle at var(--mx, 50%) var(--my, 0%), rgba(242, 210, 162, 0.08), transparent 60%);
 }
 .lp .tone {
   border-color: var(--hair);
@@ -1388,7 +1392,7 @@ body {
   -webkit-text-stroke-color: var(--vio);
 }
 .lp .bubble.reply {
-  --gold-deep: #5b4aa3;
+  --gold-deep: #8a5a22;
   background: #f3f0ea;
 }
 .lp .cmp {
@@ -1416,8 +1420,8 @@ body {
   box-shadow: 0 40px 70px -40px rgba(0, 0, 0, 0.9);
 }
 .lp .plan.hot {
-  background: linear-gradient(160deg, rgba(169, 150, 240, 0.14), rgba(91, 111, 208, 0.06));
-  border-color: rgba(169, 150, 240, 0.3);
+  background: linear-gradient(160deg, rgba(227, 169, 100, 0.14), rgba(91, 111, 208, 0.06));
+  border-color: rgba(227, 169, 100, 0.3);
 }
 .lp .plan.hot .price {
   color: var(--lav);
@@ -1438,7 +1442,7 @@ body {
   color: #6f6c67;
 }
 
-/* Appel final : dégradé violet en mouvement */
+/* Appel final : dégradé ambre et bleu en mouvement */
 .lp .final {
   isolation: isolate;
   margin-inline: max(1.2vw, 8px);
@@ -1450,7 +1454,7 @@ body {
   position: absolute;
   inset: -15%;
   z-index: -2;
-  background: linear-gradient(135deg, #5d4ea3 0%, #7c5fae 45%, #4a4d9e 75%, #241e3b 100%);
+  background: linear-gradient(135deg, #34508f 0%, #a8692e 45%, #4a4d9e 75%, #241e3b 100%);
 }
 .lp .final .mesh i {
   position: absolute;
@@ -1462,7 +1466,7 @@ body {
   top: 0;
   width: 55%;
   height: 70%;
-  background: #8573d6;
+  background: #d39a55;
   animation: evo-m1 26s ease-in-out infinite alternate;
 }
 .lp .final .mesh i:nth-child(2) {
@@ -1470,7 +1474,7 @@ body {
   top: 30%;
   width: 45%;
   height: 60%;
-  background: #a06cc2;
+  background: #b8733a;
   opacity: 0.85;
   animation: evo-m2 31s ease-in-out infinite alternate;
 }
@@ -1544,5 +1548,731 @@ body {
   }
   .lp .manifesto {
     background-position: 0 0;
+  }
+}
+
+/* ======================================================================
+   Espace client, connexion, page d'avis et installation
+   Laque noire, reflets ambre et bleus, pensé d'abord pour le téléphone.
+   ====================================================================== */
+body:has(.appx) {
+  background: #060608;
+}
+.appx {
+  --x-bg: #060608;
+  --x-ink: #f3f0ea;
+  --x-ink-2: #d4d0c8;
+  --x-mute: #a8a398;
+  --x-faint: #8a857b;
+  --x-line: rgba(255, 255, 255, 0.08);
+  --x-line-2: rgba(255, 255, 255, 0.14);
+  --x-card: rgba(255, 255, 255, 0.035);
+  --x-card-2: rgba(255, 255, 255, 0.06);
+  --x-amber: #e3a964;
+  --x-amber-2: #f2d2a2;
+  --x-blue: #7f9be0;
+  --x-red: #ff8a7a;
+  --x-green: #8fd8b2;
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 100dvh;
+  background: var(--x-bg);
+  color: var(--x-ink);
+  color-scheme: dark;
+  -webkit-tap-highlight-color: transparent;
+}
+.appx ::selection {
+  background: var(--x-amber);
+  color: #0b0a08;
+}
+.appx-glow {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(60% 38% at 88% -6%, rgba(227, 169, 100, 0.17), transparent 70%),
+    radial-gradient(55% 34% at -4% 18%, rgba(84, 112, 196, 0.16), transparent 70%),
+    radial-gradient(80% 45% at 50% 112%, rgba(227, 169, 100, 0.08), transparent 70%);
+}
+
+/* En-tête */
+.appx-bar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  padding-top: env(safe-area-inset-top);
+  background: rgba(6, 6, 8, 0.74);
+  -webkit-backdrop-filter: saturate(1.4) blur(18px);
+  backdrop-filter: saturate(1.4) blur(18px);
+  border-bottom: 1px solid var(--x-line);
+}
+.appx-bar-in {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 64rem;
+  min-height: 58px;
+  margin: 0 auto;
+  padding: 8px max(16px, env(safe-area-inset-right)) 8px max(16px, env(safe-area-inset-left));
+}
+.appx-logo {
+  display: inline-flex;
+  border-radius: 10px;
+}
+.appx-title {
+  flex: 1;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.appx-top,
+.appx-email {
+  display: none;
+}
+.appx-out {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid var(--x-line);
+  color: var(--x-mute);
+  transition: color 0.2s, background 0.2s, border-color 0.2s;
+}
+.appx-out:hover {
+  color: var(--x-ink);
+  background: var(--x-card-2);
+  border-color: var(--x-line-2);
+}
+.appx-out span {
+  display: none;
+}
+@media (min-width: 768px) {
+  .appx-bar-in {
+    gap: 18px;
+    padding-inline: 24px;
+  }
+  .appx-title {
+    display: none;
+  }
+  .appx-top {
+    display: flex;
+    flex: 1;
+    gap: 2px;
+  }
+  .appx-top a {
+    padding: 7px 14px;
+    border-radius: 999px;
+    font-size: 14px;
+    color: var(--x-mute);
+    transition: color 0.2s, background 0.2s;
+  }
+  .appx-top a:hover {
+    color: var(--x-ink);
+    background: var(--x-card-2);
+  }
+  .appx-top a[aria-current="page"] {
+    color: var(--x-ink);
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: inset 0 0 0 1px var(--x-line-2);
+  }
+  .appx-email {
+    display: inline;
+    font-size: 13px;
+    color: var(--x-faint);
+  }
+  .appx-out {
+    display: inline-flex;
+    width: auto;
+    height: 36px;
+    padding: 0 14px;
+    font-size: 13px;
+  }
+  .appx-out svg {
+    display: none;
+  }
+  .appx-out span {
+    display: inline;
+  }
+}
+
+/* Barre d'onglets du téléphone */
+.appx-tabs {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 40;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  padding: 6px max(6px, env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom)) max(6px, env(safe-area-inset-left));
+  background: rgba(8, 8, 10, 0.84);
+  -webkit-backdrop-filter: saturate(1.4) blur(20px);
+  backdrop-filter: saturate(1.4) blur(20px);
+  border-top: 1px solid var(--x-line);
+}
+.appx-tabs a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 7px 0 5px;
+  border-radius: 14px;
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--x-faint);
+  transition: color 0.2s;
+}
+.appx-tabs svg {
+  width: 23px;
+  height: 23px;
+  transition: transform 0.3s var(--ease), filter 0.3s;
+}
+.appx-tabs a:active svg {
+  transform: scale(0.9);
+}
+.appx-tabs a[aria-current="page"] {
+  color: var(--x-amber);
+}
+.appx-tabs a[aria-current="page"] svg {
+  filter: drop-shadow(0 0 10px rgba(227, 169, 100, 0.45));
+}
+@media (min-width: 768px) {
+  .appx-tabs {
+    display: none;
+  }
+}
+
+/* Contenu */
+.appx-main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 18px;
+  width: 100%;
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 18px max(16px, env(safe-area-inset-right)) calc(98px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+}
+.appx-main > * {
+  margin: 0;
+}
+@media (min-width: 768px) {
+  .appx-main {
+    gap: 24px;
+    padding: 36px 24px 72px;
+  }
+}
+.appx-solo {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  gap: 24px;
+  width: 100%;
+  max-width: 28rem;
+  margin: 0 auto;
+  padding: calc(32px + env(safe-area-inset-top)) 16px calc(32px + env(safe-area-inset-bottom));
+}
+.appx-solo-logo {
+  display: inline-flex;
+  align-self: center;
+  border-radius: 14px;
+  box-shadow: 0 18px 50px -12px rgba(227, 169, 100, 0.35);
+}
+
+/* Composants */
+.appx h1,
+.appx h2,
+.appx h3 {
+  color: var(--x-ink);
+  letter-spacing: -0.015em;
+}
+.appx .page-title {
+  font-size: 28px;
+  line-height: 1.1;
+  font-weight: 600;
+  letter-spacing: -0.035em;
+}
+@media (min-width: 768px) {
+  .appx .page-title {
+    font-size: 34px;
+  }
+}
+.appx .card {
+  padding: 18px;
+  border: 1px solid var(--x-line);
+  border-radius: 22px;
+  background: var(--x-card);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 24px 48px -32px rgba(0, 0, 0, 0.9);
+}
+@media (min-width: 640px) {
+  .appx .card {
+    padding: 24px;
+    border-radius: 24px;
+  }
+}
+.appx .btn {
+  min-height: 48px;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+}
+@media (min-width: 768px) {
+  .appx .btn {
+    min-height: 42px;
+    font-size: 14px;
+  }
+}
+.appx .btn-xl {
+  min-height: 56px;
+  font-size: 16px;
+}
+.appx .btn-primary {
+  background: var(--x-ink);
+  color: #0b0a08;
+  box-shadow: 0 10px 30px -12px rgba(243, 240, 234, 0.35);
+}
+.appx .btn-primary:hover {
+  background: #fff;
+}
+.appx .stars-lg {
+  font-size: 26px;
+  letter-spacing: 6px;
+  text-shadow: 0 0 24px rgba(227, 169, 100, 0.45);
+}
+.appx .btn-secondary {
+  border: 1px solid var(--x-line-2);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--x-ink);
+}
+.appx .btn-secondary:hover {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.08);
+}
+.appx .btn-quiet {
+  background: transparent;
+  color: var(--x-mute);
+}
+.appx .btn-quiet:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--x-ink);
+}
+.appx .input {
+  padding: 12px 14px;
+  border: 1px solid var(--x-line-2);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--x-ink);
+  /* 16 px : en dessous, l'iPhone zoome sur le champ à chaque saisie. */
+  font-size: 16px;
+  line-height: 1.5;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+.appx .input::placeholder {
+  color: var(--x-faint);
+}
+.appx .input:focus {
+  outline: none;
+  border-color: rgba(227, 169, 100, 0.7);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 0 0 4px rgba(227, 169, 100, 0.14);
+}
+.appx select.input {
+  appearance: none;
+  padding-right: 40px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%23a8a398' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 15px center;
+}
+.appx select.input option {
+  background: #141317;
+  color: var(--x-ink);
+}
+@media (min-width: 768px) {
+  .appx .input {
+    padding: 10px 14px;
+    font-size: 14.5px;
+  }
+}
+.appx input[type="checkbox"] {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  accent-color: var(--x-amber);
+}
+.appx .label {
+  color: var(--x-ink-2);
+  font-size: 13.5px;
+}
+.appx .hint {
+  color: var(--x-faint);
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+.appx .link {
+  color: var(--x-ink);
+  text-decoration-color: rgba(227, 169, 100, 0.5);
+}
+.appx .link:hover {
+  text-decoration-color: var(--x-amber);
+}
+.appx .brand {
+  color: var(--x-ink);
+}
+.appx .notice-info,
+.appx .notice-ok,
+.appx .notice-error {
+  padding: 11px 14px;
+  border-radius: 14px;
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+.appx .notice-info {
+  border: 1px solid rgba(227, 169, 100, 0.22);
+  background: rgba(227, 169, 100, 0.08);
+  color: var(--x-amber-2);
+}
+.appx .notice-info .link {
+  color: inherit;
+}
+.appx .notice-ok {
+  border: 1px solid rgba(143, 216, 178, 0.22);
+  background: rgba(143, 216, 178, 0.08);
+  color: #c4ead6;
+}
+.appx .notice-error {
+  border: 1px solid rgba(255, 138, 122, 0.25);
+  background: rgba(255, 138, 122, 0.08);
+  color: #ffc9c0;
+}
+.appx .pill-ok {
+  background: rgba(143, 216, 178, 0.14);
+  color: #c4ead6;
+}
+.appx .pill-todo {
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--x-mute);
+}
+.appx .pill-warn {
+  background: rgba(227, 169, 100, 0.14);
+  color: var(--x-amber-2);
+}
+.appx .step-n {
+  background: var(--x-ink);
+  color: #0b0a08;
+}
+.appx details > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 24px;
+  list-style: none;
+}
+.appx details > summary::-webkit-details-marker {
+  display: none;
+}
+.appx details > summary::after {
+  content: "";
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin-right: 4px;
+  border-right: 1.6px solid var(--x-mute);
+  border-bottom: 1.6px solid var(--x-mute);
+  transform: translateY(-2px) rotate(45deg);
+  transition: transform 0.3s var(--ease);
+}
+.appx details[open] > summary::after {
+  transform: translateY(2px) rotate(225deg);
+}
+
+/* Couleurs claires d'origine, ramenées sur la laque */
+.appx .text-stone-900,
+.appx .text-stone-800 {
+  color: var(--x-ink);
+}
+.appx .text-stone-700 {
+  color: var(--x-ink-2);
+}
+.appx .text-stone-600 {
+  color: var(--x-mute);
+}
+.appx .text-stone-500 {
+  color: var(--x-faint);
+}
+.appx .text-stone-400 {
+  color: #75706a;
+}
+.appx .text-stone-300 {
+  color: rgba(255, 255, 255, 0.18);
+}
+.appx .bg-white {
+  background: transparent;
+}
+.appx .bg-stone-50 {
+  background: rgba(255, 255, 255, 0.04);
+}
+.appx .bg-stone-100 {
+  background: rgba(255, 255, 255, 0.07);
+}
+.appx .border-stone-200,
+.appx .divide-stone-200 > :not(:last-child) {
+  border-color: var(--x-line);
+}
+.appx .text-amber-500 {
+  color: var(--x-amber);
+}
+.appx .text-red-600 {
+  color: var(--x-red);
+}
+
+/* Boîte de réception */
+.appx .seg {
+  display: flex;
+  gap: 4px;
+  width: max-content;
+  max-width: 100%;
+  padding: 4px;
+  overflow-x: auto;
+  border: 1px solid var(--x-line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.035);
+  scrollbar-width: none;
+}
+.appx .seg a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 0 16px;
+  border-radius: 999px;
+  font-size: 14px;
+  white-space: nowrap;
+  color: var(--x-mute);
+  transition: color 0.2s, background 0.25s;
+}
+.appx .seg a[aria-current="page"] {
+  background: var(--x-ink);
+  color: #0b0a08;
+  font-weight: 500;
+}
+.appx .seg-n {
+  min-width: 20px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--x-amber);
+  color: #1a1206;
+  font-size: 11.5px;
+  font-weight: 600;
+  text-align: center;
+}
+@media (max-width: 639px) {
+  .appx .seg {
+    width: 100%;
+  }
+  .appx .seg a {
+    flex: 1;
+  }
+}
+.appx .rv-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.appx .rv-avatar {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--x-line-2);
+  border-radius: 50%;
+  background: linear-gradient(140deg, rgba(227, 169, 100, 0.3), rgba(84, 112, 196, 0.24));
+  font-size: 15px;
+  font-weight: 600;
+}
+.appx .rv-who {
+  flex: 1;
+  min-width: 0;
+}
+.appx .rv-name,
+.appx .rv-meta {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.appx .rv-name {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.appx .rv-meta {
+  font-size: 12.5px;
+  color: var(--x-faint);
+}
+.appx .stars {
+  flex: none;
+  font-size: 14px;
+  letter-spacing: 1px;
+  color: var(--x-amber);
+}
+.appx .stars.low {
+  color: var(--x-red);
+}
+.appx .stars .off {
+  color: rgba(255, 255, 255, 0.16);
+}
+.appx .rv-text {
+  font-size: 15.5px;
+  line-height: 1.55;
+}
+.appx .tag {
+  display: inline-flex;
+  padding: 3px 9px;
+  border: 1px solid var(--x-line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--x-mute);
+  font: 500 10.5px/1.4 "Geist Mono", ui-monospace, monospace;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.appx .reply {
+  padding: 14px 16px;
+  border: 1px solid rgba(227, 169, 100, 0.2);
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(227, 169, 100, 0.1), rgba(227, 169, 100, 0.03));
+}
+.appx .reply-k {
+  margin-bottom: 8px;
+  color: var(--x-amber);
+  font: 500 10.5px/1 "Geist Mono", ui-monospace, monospace;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.appx .rv textarea.input {
+  min-height: 132px;
+  max-height: 420px;
+  field-sizing: content;
+}
+.appx .actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+@media (max-width: 639px) {
+  .appx .actions > * {
+    flex: 1 1 0;
+    padding-inline: 12px;
+  }
+  .appx .actions > :first-child {
+    flex-basis: 100%;
+  }
+  .appx form > .btn {
+    width: 100%;
+  }
+}
+
+/* Analyse */
+.appx .stat {
+  padding: 16px;
+}
+.appx .stat-label {
+  font-size: 12.5px;
+  color: var(--x-faint);
+}
+.appx .stat-value {
+  font-size: 30px;
+  color: var(--x-ink);
+}
+.appx .stat-hint {
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--x-faint);
+}
+@media (min-width: 640px) {
+  .appx .stat {
+    padding: 22px;
+  }
+  .appx .stat-label {
+    font-size: 13.5px;
+  }
+  .appx .stat-value {
+    font-size: 36px;
+  }
+  .appx .stat-hint {
+    font-size: 13px;
+  }
+}
+.appx .bar-track {
+  background: rgba(255, 255, 255, 0.07);
+}
+.appx .bar {
+  background: linear-gradient(90deg, #b9783a, var(--x-amber));
+}
+.appx .bar-low {
+  background: linear-gradient(90deg, #b8574a, var(--x-red));
+}
+.appx .col {
+  border-radius: 8px 8px 3px 3px;
+  background: linear-gradient(180deg, var(--x-amber), rgba(227, 169, 100, 0.22));
+}
+.appx .eyebrow-ok {
+  color: var(--x-green);
+}
+.appx .eyebrow-warn {
+  color: var(--x-red);
+}
+.appx .insight {
+  border: 1px solid var(--x-line);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* Collecte */
+.appx .qr {
+  padding: 10px;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 20px 50px -20px rgba(227, 169, 100, 0.35);
+}
+
+/* Entrée en douceur */
+.appx-main > *,
+.appx-solo > * {
+  animation: x-rise 0.6s var(--ease) both;
+}
+.appx-main > :nth-child(2),
+.appx-solo > :nth-child(2) {
+  animation-delay: 0.05s;
+}
+.appx-main > :nth-child(3),
+.appx-solo > :nth-child(3) {
+  animation-delay: 0.1s;
+}
+.appx-main > :nth-child(n + 4),
+.appx-solo > :nth-child(n + 4) {
+  animation-delay: 0.15s;
+}
+@keyframes x-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .appx-main > *,
+  .appx-solo > * {
+    animation: none;
   }
 }

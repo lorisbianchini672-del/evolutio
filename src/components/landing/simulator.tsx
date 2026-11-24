@@ -57,7 +57,6 @@ export function Simulator() {
         <h2 id="t-demo" className="h-lg">
           Quelle note a laissé <span className="serif gold">votre client</span> ?
         </h2>
-        <p className="lead">Choisissez une note. Voici l&apos;avis, la réponse proposée et ce qu&apos;Evolutio en fait.</p>
         <div className="rates" role="group" aria-label="Choisir la note de l'avis">
           {[5, 4, 3, 2, 1].map((n) => (
             <button

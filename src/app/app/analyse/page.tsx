@@ -12,10 +12,10 @@ const MONTHS = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "aoû
 
 function Stat({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
-    <div className="card flex flex-col gap-1">
-      <p className="text-sm text-stone-500">{label}</p>
+    <div className="card stat flex flex-col gap-1">
+      <p className="stat-label">{label}</p>
       <p className="stat-value">{value}</p>
-      {hint && <p className="text-sm text-stone-500">{hint}</p>}
+      {hint && <p className="stat-hint">{hint}</p>}
     </div>
   );
 }
@@ -56,7 +56,7 @@ export default async function AnalysisPage({ searchParams }: { searchParams: Pro
     <div className="space-y-6">
       <div>
         <h1 className="page-title">Analyse</h1>
-        <p className="text-stone-600">Vos avis en chiffres, et ce que vos clients disent vraiment.</p>
+        <p className="mt-1 text-sm text-stone-600">Vos avis en chiffres, et ce que vos clients disent vraiment.</p>
       </div>
       <Notice params={params} />
 
@@ -64,7 +64,7 @@ export default async function AnalysisPage({ searchParams }: { searchParams: Pro
         <p className="card text-stone-600">Aucun avis pour l&apos;instant. Connectez votre fiche Google ou chargez les avis d&apos;exemple depuis l&apos;onglet Avis.</p>
       ) : (
         <>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
             <Stat label="Note moyenne" value={average.toFixed(1).replace(".", ",")} hint={`sur ${total} avis`} />
             <Stat label="Taux de réponse" value={`${answerRate} %`} hint={`${answered} réponses publiées`} />
             <Stat label="En attente" value={String(pending)} hint={pending ? "à traiter dans l'onglet Avis" : "tout est à jour"} />

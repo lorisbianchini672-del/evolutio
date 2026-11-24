@@ -63,7 +63,9 @@ export default async function SetupPage({ searchParams }: { searchParams: Promis
   const ready = supabase.state === "ok";
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 space-y-6 px-4 py-12">
+    <div className="appx">
+      <div className="appx-glow" aria-hidden="true" />
+      <main className="mx-auto w-full max-w-3xl flex-1 space-y-6 px-4 py-12">
       <div className="space-y-3">
         <Link href="/" className="brand">
           {APP_NAME}
@@ -229,5 +231,6 @@ export default async function SetupPage({ searchParams }: { searchParams: Promis
         </p>
       )}
     </main>
+    </div>
   );
 }
