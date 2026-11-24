@@ -1,0 +1,160 @@
+import { Notice } from "@/components/notice";
+import { SubmitButton } from "@/components/submit-button";
+import { aiConfigured } from "@/lib/ai";
+import { requireSubscriber } from "@/lib/session";
+import { analyzeAction } from "../actions";
+
+export const metadata = { title: "Analyse" };
+
+type Row = { rating: number; status: string; review_created_at: string; reply_published_at: string | null };
+
+const MONTHS = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
+
+function Stat({ label, value, hint }: { label: string; value: string; hint?: string }) {
+  return (
+    <div className="card flex flex-col gap-1">
+      <p className="text-sm text-stone-500">{label}</p>
+      <p className="stat-value">{value}</p>
+      {hint && <p className="text-sm text-stone-500">{hint}</p>}
+    </div>
+  );
+}
+
+export default async function AnalysisPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const params = await searchParams;
+  const { supabase, account } = await requireSubscriber();
+  const { data } = await supabase
+    .from("reviews")
+    .select("rating, status, review_created_at, reply_published_at")
+    .order("review_created_at", { ascending: false })
+    .limit(1000)
+    .returns<Row[]>();
+  const reviews = data ?? [];
+  const total = reviews.length;
+  const average = total ? reviews.reduce((sum, r) => sum + r.rating, 0) / total : 0;
+  const answered = reviews.filter((r) => r.status === "published").length;
+  const pending = reviews.filter((r) => r.status === "new" || r.status === "drafted").length;
+  const answerRate = total ? Math.round((answered / total) * 100) : 0;
+
+  const byStar = [5, 4, 3, 2, 1].map((star) => ({ star, count: reviews.filter((r) => r.rating === star).length }));
+  const maxStar = Math.max(1, ...byStar.map((s) => s.count));
+
+  const now = new Date();
+  const months = Array.from({ length: 6 }, (_, i) => {
+    const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - (5 - i), 1));
+    const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
+    return { key, label: MONTHS[d.getUTCMonth()], count: reviews.filter((r) => r.review_created_at.startsWith(key)).length };
+  });
+  const maxMonth = Math.max(1, ...months.map((m) => m.count));
+
+  const insights = account.insights;
+  const insightsDate = account.insights_at
+    ? new Intl.DateTimeFormat("fr-FR", { dateStyle: "long" }).format(new Date(account.insights_at))
+    : null;
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="page-title">Analyse</h1>
+        <p className="text-stone-600">Vos avis en chiffres, et ce que vos clients disent vraiment.</p>
+      </div>
+      <Notice params={params} />
+
+      {total === 0 ? (
+        <p className="card text-stone-600">Aucun avis pour l&apos;instant. Connectez votre fiche Google ou chargez les avis d&apos;exemple depuis l&apos;onglet Avis.</p>
+      ) : (
+        <>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Stat label="Note moyenne" value={average.toFixed(1).replace(".", ",")} hint={`sur ${total} avis`} />
+            <Stat label="Taux de réponse" value={`${answerRate} %`} hint={`${answered} réponses publiées`} />
+            <Stat label="En attente" value={String(pending)} hint={pending ? "à traiter dans l'onglet Avis" : "tout est à jour"} />
+            <Stat label="Avis ce mois-ci" value={String(months[5].count)} hint={`${months[4].count} le mois dernier`} />
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-2">
+            <section className="card space-y-4" aria-labelledby="t-stars">
+              <h2 id="t-stars" className="font-semibold">Répartition des notes</h2>
+              <div className="space-y-2.5">
+                {byStar.map(({ star, count }) => (
+                  <div key={star} className="grid grid-cols-[2.5rem_1fr_2.5rem] items-center gap-3 text-sm">
+                    <span className="text-stone-600">{star} ★</span>
+                    <span className="bar-track">
+                      <span className={star <= 3 ? "bar bar-low" : "bar"} style={{ width: `${(count / maxStar) * 100}%` }} />
+                    </span>
+                    <span className="text-right tabular-nums text-stone-600">{count}</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <section className="card space-y-4" aria-labelledby="t-months">
+              <h2 id="t-months" className="font-semibold">Avis reçus sur 6 mois</h2>
+              <div className="flex h-40 items-end gap-3">
+                {months.map((m) => (
+                  <div key={m.key} className="flex h-full flex-1 flex-col items-center justify-end gap-1.5">
+                    <span className="text-xs tabular-nums text-stone-600">{m.count}</span>
+                    <span className="col" style={{ height: `${Math.max(3, (m.count / maxMonth) * 100)}%` }} />
+                    <span className="text-xs text-stone-500">{m.label}</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </div>
+        </>
+      )}
+
+      <section className="card space-y-4" aria-labelledby="t-insights">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 id="t-insights" className="font-semibold">Ce que disent vos clients</h2>
+            <p className="text-sm text-stone-500">
+              {insightsDate ? `Synthèse par IA du ${insightsDate}.` : "Synthèse par IA de vos derniers avis : forces, irritants, et une action à mener."}
+            </p>
+          </div>
+          <form action={analyzeAction}>
+            <SubmitButton className={insights ? "btn btn-secondary" : "btn btn-primary"}>
+              {insights ? "Mettre à jour la synthèse" : "Analyser mes avis"}
+            </SubmitButton>
+          </form>
+        </div>
+        {!aiConfigured() && <p className="notice-info">La synthèse a besoin de la clé d&apos;IA (étape 3 de l&apos;installation).</p>}
+        {insights && (
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <p className="eyebrow-ok">Forces</p>
+              <ul className="space-y-2">
+                {insights.forces.map((item) => (
+                  <li key={item.theme} className="insight">
+                    <span className="font-medium">{item.theme}</span>
+                    <span className="text-sm text-stone-600">{item.detail}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="space-y-2">
+              <p className="eyebrow-warn">Irritants</p>
+              {insights.irritants.length ? (
+                <ul className="space-y-2">
+                  {insights.irritants.map((item) => (
+                    <li key={item.theme} className="insight">
+                      <span className="font-medium">{item.theme}</span>
+                      <span className="text-sm text-stone-600">{item.detail}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-stone-600">Aucun irritant récurrent dans ces avis.</p>
+              )}
+            </div>
+            {insights.action && (
+              <p className="notice-ok md:col-span-2">
+                <span className="font-medium">À faire ce mois-ci : </span>
+                {insights.action}
+              </p>
+            )}
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
