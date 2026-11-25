@@ -4,11 +4,13 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { isPlanId, SECTORS, siteUrl, TONES, TRIAL_DAYS } from "@/lib/config";
 import { aiConfigured, generateInsights } from "@/lib/ai";
+import { normalizePhone, phoneAlertText, sendPhoneAlert } from "@/lib/alerts";
 import { decryptSecret } from "@/lib/crypto";
 import { addManualReview, clearDemoData, loadDemoData } from "@/lib/demo";
-import { reviewRequestEmail, sendEmail } from "@/lib/email";
+import { monthlyReportEmail, reviewRequestEmail, sendEmail } from "@/lib/email";
 import { revokeToken } from "@/lib/google";
 import { monthStartIso, planOf } from "@/lib/plan";
+import { loadReport } from "@/lib/report";
 import { draftReview, publishReview, syncUser } from "@/lib/reviews";
 import { requireAccount, requireSubscriber } from "@/lib/session";
 import { getStripe, priceIdFor } from "@/lib/stripe";
@@ -24,6 +26,7 @@ function messageOf(err: unknown): string {
 }
 
 function inboxPath(formData: FormData): string {
+  if (formData.get("retour") === "rapide") return "/app/rapide";
   const view = String(formData.get("vue") ?? "");
   return ["publies", "tous"].includes(view) ? `/app?vue=${view}` : "/app";
 }
@@ -40,8 +43,13 @@ export async function draftAction(formData: FormData) {
     error = messageOf(err);
   }
   revalidatePath("/app");
-  if (error) go(inboxPath(formData), "erreur", error);
-  redirect(`${inboxPath(formData)}#avis-${id}`);
+  const back = inboxPath(formData);
+  if (back === "/app/rapide") {
+    if (error) go(`/app/rapide?avis=${encodeURIComponent(id)}`, "erreur", error);
+    redirect(`/app/rapide?avis=${encodeURIComponent(id)}`);
+  }
+  if (error) go(back, "erreur", error);
+  redirect(`${back}#avis-${id}`);
 }
 
 export async function publishAction(formData: FormData) {
@@ -88,6 +96,20 @@ export async function syncAction() {
 }
 
 // ---- Analyse ------------------------------------------------------------------------------
+
+export async function sendReportAction() {
+  const { account } = await requireSubscriber();
+  let error: string | null = null;
+  try {
+    const report = await loadReport(createAdminClient(), account, 1);
+    const result = await sendEmail({ to: account.email, ...monthlyReportEmail(report, account.business_name) });
+    if (!result.sent) throw new Error(result.error);
+  } catch (err) {
+    error = messageOf(err);
+  }
+  if (error) go("/app/analyse", "erreur", error);
+  go("/app/analyse", "ok", `Rapport envoyé à ${account.email}.`);
+}
 
 export async function analyzeAction() {
   const { supabase, user, account } = await requireSubscriber();
@@ -225,6 +247,10 @@ export async function saveSettingsAction(formData: FormData) {
   const sector = text("sector", 30);
   const tone = text("tone", 30);
   const auto = text("auto_publish", 2);
+  const channel = text("alert_channel", 10);
+  if (["sms", "whatsapp"].includes(channel) && !normalizePhone(text("alert_phone", 30))) {
+    go("/app/reglages", "erreur", "Pour les alertes SMS ou WhatsApp, indiquez un numéro valide (exemple : 06 12 34 56 78).");
+  }
 
   const { error } = await supabase
     .from("accounts")
@@ -237,11 +263,33 @@ export async function saveSettingsAction(formData: FormData) {
       extra_instructions: text("extra_instructions", 600),
       auto_publish_min_rating: auto === "4" ? 4 : auto === "5" ? 5 : null,
       alert_email: formData.get("alert_email") === "on",
+      alert_channel: ["sms", "whatsapp"].includes(channel) ? channel : "none",
+      alert_phone: text("alert_phone", 30),
+      report_email: formData.get("report_email") === "on",
     })
     .eq("id", user.id);
   revalidatePath("/app", "layout");
   if (error) go("/app/reglages", "erreur", error.message);
   go("/app/reglages", "ok", "Réglages enregistrés.");
+}
+
+export async function testPhoneAlertAction() {
+  const { account } = await requireAccount();
+  if (account.alert_channel !== "none" && !normalizePhone(account.alert_phone)) {
+    go("/app/reglages", "erreur", "Numéro de téléphone invalide. Exemple : 06 12 34 56 78.");
+  }
+  const result = await sendPhoneAlert(
+    account,
+    phoneAlertText({
+      locationTitle: account.business_name.trim() || "votre établissement",
+      rating: 2,
+      reviewer: "Exemple",
+      comment: "Ceci est un message d'essai : vos alertes fonctionnent.",
+      url: `${siteUrl()}/app/rapide`,
+    }),
+  );
+  if (!result.sent) go("/app/reglages", "erreur", result.error ?? "Envoi impossible.");
+  go("/app/reglages", "ok", "Alerte d'essai envoyée.");
 }
 
 export async function updatePasswordAction(formData: FormData) {

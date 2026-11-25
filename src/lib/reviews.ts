@@ -1,8 +1,8 @@
 import { generateReply } from "./ai";
 import { decryptSecret } from "./crypto";
-import { newReviewAlert, sendEmail } from "./email";
 import { listReviews, publishReply, refreshAccessToken } from "./google";
 import { mapGoogleReview } from "./google-map";
+import { notifyNewReview } from "./notify";
 import { createAdminClient } from "./supabase/admin";
 import type { Account, Location, Review } from "./types";
 
@@ -146,14 +146,13 @@ export async function syncLocation(
       if (threshold && threshold >= 4 && r.rating >= threshold) {
         await publishReview(userId, inserted.id, draft, accessToken);
         result.autoPublished += 1;
-      } else if (account.alert_email) {
-        const mail = newReviewAlert({
-          locationTitle: location.title,
+      } else {
+        await notifyNewReview(account, location.title, {
+          id: inserted.id,
           rating: r.rating,
-          reviewer: r.reviewer_name,
+          reviewer_name: r.reviewer_name,
           comment: r.comment,
         });
-        await sendEmail({ to: account.email, ...mail });
       }
     } catch (err) {
       // Un échec sur un avis ne doit pas bloquer les suivants : il reste « nouveau » dans le tableau de bord.

@@ -18,8 +18,13 @@ export async function supabaseStep(): Promise<Step & { schemaMissing: boolean; s
   try {
     const { error } = await createAdminClient().from("accounts").select("id", { count: "exact", head: true });
     if (!error) {
-      const { error: columnError } = await createAdminClient().from("accounts").select("insights_at").limit(1);
-      if (columnError) {
+      const admin = createAdminClient();
+      const [{ error: columnError }, { error: pushError }, { error: eventsError }] = await Promise.all([
+        admin.from("accounts").select("insights_at, report_email, alert_channel").limit(1),
+        admin.from("push_subscriptions").select("id", { count: "exact", head: true }),
+        admin.from("collect_events").select("id", { count: "exact", head: true }),
+      ]);
+      if (columnError || pushError || eventsError) {
         return {
           state: "error",
           detail: "Base connectée, mais le schéma est ancien. Relancez le script SQL ci-dessous pour le mettre à jour.",

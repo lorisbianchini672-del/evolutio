@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { Notice } from "@/components/notice";
+import { PushSetup } from "@/components/push-setup";
 import { SubmitButton } from "@/components/submit-button";
 import { aiConfigured } from "@/lib/ai";
 import { googleConfigured } from "@/lib/google";
+import { pushConfigured, vapidPublicKey } from "@/lib/push";
 import { requireSubscriber } from "@/lib/session";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Location, Review } from "@/lib/types";
@@ -148,12 +150,21 @@ export default async function InboxPage({
             {connection?.google_email ? ` · fiche Google connectée (${connection.google_email})` : ""}
           </p>
         </div>
-        {connection && (
-          <form action={syncAction}>
-            <SubmitButton className="btn btn-secondary">Vérifier les nouveaux avis</SubmitButton>
-          </form>
-        )}
+        <div className="flex flex-wrap gap-2">
+          {(todoCount ?? 0) > 0 && (
+            <Link href="/app/rapide" className="btn btn-primary">
+              Répondre en mode rapide
+            </Link>
+          )}
+          {connection && (
+            <form action={syncAction}>
+              <SubmitButton className="btn btn-secondary">Vérifier les nouveaux avis</SubmitButton>
+            </form>
+          )}
+        </div>
       </div>
+
+      {pushConfigured() && <PushSetup publicKey={vapidPublicKey()} compact />}
 
       <Notice params={params} />
 

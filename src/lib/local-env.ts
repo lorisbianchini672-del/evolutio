@@ -1,4 +1,4 @@
-import { randomBytes } from "node:crypto";
+import { createECDH, randomBytes } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -57,6 +57,13 @@ export function ensureLocalEnv(): void {
     if (!process.env.CRON_SECRET) missing.CRON_SECRET = randomBytes(24).toString("hex");
     if (!process.env.GOOGLE_PUBSUB_VERIFICATION_TOKEN) {
       missing.GOOGLE_PUBSUB_VERIFICATION_TOKEN = randomBytes(24).toString("hex");
+    }
+    if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
+      // Clés des notifications du téléphone (norme Web Push / VAPID), propres à cette installation.
+      const ecdh = createECDH("prime256v1");
+      ecdh.generateKeys();
+      missing.VAPID_PUBLIC_KEY = ecdh.getPublicKey().toString("base64url");
+      missing.VAPID_PRIVATE_KEY = ecdh.getPrivateKey().toString("base64url");
     }
     if (Object.keys(missing).length) {
       try {

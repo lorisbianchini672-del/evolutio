@@ -15,6 +15,10 @@ export function supabaseConfigured(): boolean {
 
 export const TRIAL_DAYS = 14;
 
+/** Adresse de contact affichée sur le site (offre d'installation). Vide : les boutons mènent à l'inscription. */
+export const CONTACT_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "";
+export const CITY = "Lyon";
+
 export type PlanId = "essentiel" | "pro" | "multi";
 
 export type Plan = {
@@ -79,10 +83,13 @@ export function isPlanId(value: unknown): value is PlanId {
 }
 
 export const SECTORS = {
+  garage: "Garage, carrosserie, location de véhicules",
   restaurant: "Restaurant, café, bar",
+  boulangerie: "Boulangerie, pâtisserie, traiteur",
+  coiffure: "Coiffure, barbier",
   commerce: "Commerce de proximité",
   artisan: "Artisan (bâtiment, dépannage, services)",
-  beaute: "Beauté et bien-être",
+  beaute: "Institut de beauté, bien-être",
   immobilier: "Agence immobilière",
   sante: "Professionnel de santé",
   autre: "Autre activité",

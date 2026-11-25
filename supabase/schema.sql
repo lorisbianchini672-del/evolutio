@@ -152,3 +152,38 @@ create policy "feedback_select_own" on public.feedback for select using (auth.ui
 -- Synthèse IA des avis (page Analyse) ---------------------------------------------------------
 alter table public.accounts add column if not exists insights jsonb;
 alter table public.accounts add column if not exists insights_at timestamptz;
+
+-- Version 2 : notifications, alertes SMS/WhatsApp, rapport mensuel, suivi de la collecte -------
+-- Ce bloc peut être exécuté sur une base existante : il ne fait qu'ajouter.
+
+alter table public.accounts add column if not exists alert_phone text not null default '';
+alter table public.accounts add column if not exists alert_channel text not null default 'none'
+  check (alert_channel in ('none', 'sms', 'whatsapp'));
+alter table public.accounts add column if not exists report_email boolean not null default true;
+alter table public.accounts add column if not exists last_report_at timestamptz;
+
+-- Abonnements aux notifications du téléphone (un par appareil)
+create table if not exists public.push_subscriptions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  endpoint text not null unique,
+  p256dh text not null,
+  auth text not null,
+  created_at timestamptz not null default now()
+);
+create index if not exists push_subscriptions_user_idx on public.push_subscriptions (user_id);
+alter table public.push_subscriptions enable row level security;
+-- Aucune règle : seul le serveur lit et écrit cette table.
+
+-- Passages sur la page de collecte et clics vers Google (compteur « avis gagnés »)
+create table if not exists public.collect_events (
+  id bigint generated always as identity primary key,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  location_id uuid not null references public.locations (id) on delete cascade,
+  kind text not null check (kind in ('visit', 'google_click')),
+  created_at timestamptz not null default now()
+);
+create index if not exists collect_events_user_idx on public.collect_events (user_id, created_at desc);
+alter table public.collect_events enable row level security;
+drop policy if exists "collect_events_select_own" on public.collect_events;
+create policy "collect_events_select_own" on public.collect_events for select using (auth.uid() = user_id);

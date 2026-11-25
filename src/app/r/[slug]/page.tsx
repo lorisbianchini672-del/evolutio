@@ -20,10 +20,20 @@ export default async function ReviewPage({
   const [{ slug }, query] = await Promise.all([params, searchParams]);
   const { data: location } = await createAdminClient()
     .from("locations")
-    .select("title, review_url")
+    .select("id, user_id, title, review_url")
     .eq("slug", slug)
-    .maybeSingle<{ title: string; review_url: string | null }>();
+    .maybeSingle<{ id: string; user_id: string; title: string; review_url: string | null }>();
   if (!location) notFound();
+  if (!query.merci && !query.erreur) {
+    // Un passage sur la page (scan du QR code ou clic sur le lien) : alimente le compteur de la collecte.
+    await createAdminClient()
+      .from("collect_events")
+      .insert({ user_id: location.user_id, location_id: location.id, kind: "visit" })
+      .then(
+        () => undefined,
+        () => undefined,
+      );
+  }
 
   return (
     <div className="appx">
@@ -39,7 +49,7 @@ export default async function ReviewPage({
           ★★★★★
         </p>
         {location.review_url ? (
-          <a href={location.review_url} className="btn btn-primary btn-xl w-full" rel="noreferrer">
+          <a href={`/r/${encodeURIComponent(slug)}/go`} className="btn btn-primary btn-xl w-full" rel="nofollow">
             Laisser un avis sur Google
           </a>
         ) : (

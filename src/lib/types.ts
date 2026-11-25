@@ -14,8 +14,14 @@ export type Account = {
   alert_email: boolean;
   insights: Insights | null;
   insights_at: string | null;
+  alert_phone: string;
+  alert_channel: AlertChannel;
+  report_email: boolean;
+  last_report_at: string | null;
   created_at: string;
 };
+
+export type AlertChannel = "none" | "sms" | "whatsapp";
 
 export type Subscription = {
   user_id: string;

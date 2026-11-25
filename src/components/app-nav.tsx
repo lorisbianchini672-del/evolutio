@@ -71,7 +71,8 @@ const ITEMS: Item[] = [
 ];
 
 function isActive(pathname: string, href: string): boolean {
-  return href === "/app" ? pathname === "/app" : pathname === href || pathname.startsWith(`${href}/`);
+  if (href === "/app") return pathname === "/app" || pathname.startsWith("/app/rapide");
+  return pathname === href || pathname.startsWith(`${href}/`);
 }
 
 /**

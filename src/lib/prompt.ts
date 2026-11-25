@@ -18,13 +18,53 @@ export type ReviewInput = {
 };
 
 const SECTOR_LABEL: Record<Sector, string> = {
+  garage: "garage automobile ou agence de location de véhicules",
   restaurant: "restaurant",
+  boulangerie: "boulangerie-pâtisserie",
+  coiffure: "salon de coiffure",
   commerce: "commerce de proximité",
   artisan: "entreprise artisanale",
   beaute: "établissement de beauté et bien-être",
   immobilier: "agence immobilière",
   sante: "cabinet d'un professionnel de santé",
   autre: "entreprise locale",
+};
+
+/**
+ * Ce que chaque métier doit savoir pour bien répondre : le vocabulaire du client,
+ * et les pièges propres au secteur. Une ligne par consigne.
+ */
+export const SECTOR_GUIDE: Record<Sector, string[]> = {
+  garage: [
+    "Parle comme un garagiste : véhicule, intervention, devis, délai, prise en charge, restitution.",
+    "Ne reconnais jamais en public une responsabilité sur un dommage, une panne ou un sinistre : propose d'examiner le dossier ensemble.",
+    "Pour une location : ne commente ni franchise, ni caution, ni frais facturés en public ; invite à en parler avec l'agence.",
+    "Sur un dépassement de devis ou de délai, reconnais la gêne et explique que l'équipe reprend le dossier, sans chiffre.",
+  ],
+  restaurant: [
+    "Vocabulaire de salle et de cuisine : service, accueil, plats, carte, attente.",
+    "Ne parle d'aucun problème d'hygiène ou d'intoxication en public : invite à contacter directement l'établissement.",
+  ],
+  boulangerie: [
+    "Vocabulaire du métier : pain, viennoiseries, pâtisseries, fournée, commande.",
+    "Une commande oubliée ou ratée : excuse sincère et proposition d'en parler, sans geste commercial chiffré.",
+  ],
+  coiffure: [
+    "Vocabulaire du salon : coupe, couleur, coiffeur ou coiffeuse, rendez-vous, conseil.",
+    "Un résultat qui déçoit : propose de revoir la personne au salon pour en parler, sans promettre de retouche gratuite en public.",
+  ],
+  commerce: ["Vocabulaire du commerce : conseil, choix, accueil, disponibilité des produits."],
+  artisan: [
+    "Vocabulaire du chantier : intervention, devis, délai, finitions.",
+    "Ne reconnais aucune malfaçon en public : propose de revenir sur place ou d'en parler.",
+  ],
+  beaute: ["Vocabulaire de l'institut : soin, prestation, praticienne, rendez-vous, détente."],
+  immobilier: [
+    "Vocabulaire de l'agence : bien, visite, dossier, mandat, accompagnement.",
+    "Ne mentionne aucun détail de transaction, de prix ou de dossier client.",
+  ],
+  sante: [],
+  autre: [],
 };
 
 const TONE_RULE: Record<Tone, string> = {
@@ -57,6 +97,7 @@ export function buildSystemPrompt(s: ReplySettings): string {
     "- Si tu t'adresses à l'auteur par son nom, utilise uniquement le prénom fourni.",
     `- ${TONE_RULE[s.tone]}`,
   ];
+  for (const line of SECTOR_GUIDE[s.sector] ?? []) rules.push(`- ${line}`);
   if (s.sector === "sante") {
     rules.push(
       "- Secret professionnel : ne confirme jamais que l'auteur est ou a été patient, n'évoque aucun soin, rendez-vous, traitement ou état de santé. Reste général et invite à contacter le cabinet.",

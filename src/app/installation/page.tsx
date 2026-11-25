@@ -59,6 +59,11 @@ export default async function SetupPage({ searchParams }: { searchParams: Promis
     "Identifiants Google enregistrés. La connexion des fiches fonctionne dès que Google a approuvé l'accès à son API.",
     "À faire en dernier : Google doit d'abord approuver votre accès à l'API Business Profile.",
   );
+  const twilio = simpleStep(
+    ["TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN"],
+    "Twilio connecté : les alertes SMS ou WhatsApp des avis négatifs sont actives.",
+    "Facultatif. Les alertes SMS et WhatsApp des avis de 1 à 3 étoiles. Sans Twilio, l'e-mail et la notification du téléphone suffisent.",
+  );
   const sql = supabase.schemaMissing ? schemaSql() : "";
   const ready = supabase.state === "ok";
 
@@ -221,6 +226,27 @@ export default async function SetupPage({ searchParams }: { searchParams: Promis
           </form>
         ) : (
           <p className="hint">Variables : GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, TOKEN_ENCRYPTION_KEY, CRON_SECRET</p>
+        )}
+      </StepCard>
+
+      <StepCard id="twilio" n={6} title="Twilio : SMS et WhatsApp (facultatif)" state={twilio.state} detail={twilio.detail}>
+        {local ? (
+          <form action={saveKeysAction} className="grid gap-3 sm:grid-cols-2">
+            <input type="hidden" name="section" value="twilio" />
+            <Field name="TWILIO_ACCOUNT_SID" label="Account SID" placeholder="AC…" type="text" />
+            <Field name="TWILIO_AUTH_TOKEN" label="Auth Token" />
+            <Field name="TWILIO_SMS_FROM" label="Numéro d'envoi SMS" placeholder="+33…" type="text" />
+            <Field name="TWILIO_WHATSAPP_FROM" label="Numéro WhatsApp Twilio" placeholder="+14155238886" type="text" />
+            <p className="hint sm:col-span-2">
+              Pour WhatsApp, commencez avec le « sandbox » de Twilio. En production, Meta impose un modèle de message
+              validé pour les messages envoyés en premier.
+            </p>
+            <div className="sm:col-span-2">
+              <SubmitButton className="btn btn-secondary">Enregistrer</SubmitButton>
+            </div>
+          </form>
+        ) : (
+          <p className="hint">Variables : TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_SMS_FROM, TWILIO_WHATSAPP_FROM</p>
         )}
       </StepCard>
 

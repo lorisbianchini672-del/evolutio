@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: `${APP_NAME} · Réponses et collecte d'avis Google`,
   description:
     "Evolutio rédige la réponse à chaque avis Google dans votre ton, vous alerte quand un client est déçu et vous aide à récolter de nouveaux avis.",
+  appleWebApp: { capable: true, title: APP_NAME, statusBarStyle: "black-translucent" },
 };
 
 export const viewport: Viewport = {

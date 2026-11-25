@@ -4,7 +4,9 @@ import { SubmitButton } from "@/components/submit-button";
 import { siteUrl } from "@/lib/config";
 import { emailConfigured } from "@/lib/email";
 import { monthStartIso, planOf } from "@/lib/plan";
+import { loadReport } from "@/lib/report";
 import { requireSubscriber } from "@/lib/session";
+import { createAdminClient } from "@/lib/supabase/admin";
 import type { Feedback, Location } from "@/lib/types";
 import { sendRequestAction } from "../actions";
 
@@ -16,7 +18,8 @@ export default async function CollectPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
-  const { supabase, subscription } = await requireSubscriber();
+  const { supabase, subscription, account } = await requireSubscriber();
+  const report = await loadReport(createAdminClient(), account, 0);
   const plan = planOf(subscription);
 
   const [{ data: locations }, { count: sentThisMonth }, { data: feedback }] = await Promise.all([
@@ -50,6 +53,35 @@ export default async function CollectPage({
           Connectez votre fiche Google ou chargez les avis d&apos;exemple depuis l&apos;onglet Avis pour créer votre
           page de collecte.
         </p>
+      )}
+
+      {cards.length > 0 && (
+        <section className="card space-y-4" aria-labelledby="t-gains">
+          <div>
+            <p className="reply-k">Ce mois-ci</p>
+            <h2 id="t-gains" className="text-lg font-semibold">
+              Ce que la collecte vous rapporte
+            </h2>
+          </div>
+          <div className="report-grid">
+            <div>
+              <p className="report-n">{report.visits}</p>
+              <p className="report-l">passages sur votre page</p>
+            </div>
+            <div>
+              <p className="report-n">{report.googleClicks}</p>
+              <p className="report-l">clients envoyés vers Google</p>
+            </div>
+            <div>
+              <p className="report-n">{report.requests}</p>
+              <p className="report-l">demandes par e-mail</p>
+            </div>
+            <div>
+              <p className="report-n">{report.sinceJoin.reviews}</p>
+              <p className="report-l">avis gagnés depuis votre arrivée</p>
+            </div>
+          </div>
+        </section>
       )}
 
       {cards.map(({ location, link, qr }) => (
@@ -110,7 +142,7 @@ export default async function CollectPage({
         </section>
       ))}
 
-      <section className="card space-y-3">
+      <section id="messages" className="card scroll-mt-20 space-y-3">
         <h2 className="font-semibold">Messages privés reçus</h2>
         <p className="text-sm text-stone-600">
           Tout visiteur de la page de collecte peut vous écrire directement, en plus ou à la place d&apos;un avis public.

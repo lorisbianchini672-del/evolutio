@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 import { APP_NAME, siteUrl } from "./config";
+import { formatRating, ratingDelta, type MonthlyReport } from "./report";
 
 export function emailConfigured(): boolean {
   return Boolean(process.env.RESEND_API_KEY && process.env.EMAIL_FROM);
@@ -39,7 +40,7 @@ function layout(body: string): string {
 }
 
 function button(href: string, label: string): string {
-  return `<p><a href="${href}" style="display:inline-block;background:#0f766e;color:#ffffff;padding:10px 18px;border-radius:8px;text-decoration:none">${label}</a></p>`;
+  return `<p><a href="${href}" style="display:inline-block;background:#15130f;color:#f3f0ea;padding:12px 20px;border-radius:999px;text-decoration:none">${label}</a></p>`;
 }
 
 /** Alerte envoyée au commerçant quand un avis attend sa validation. */
@@ -72,6 +73,45 @@ export function reviewRequestEmail(input: { businessName: string; link: string }
       `<p>Bonjour,</p><p>Merci d'avoir fait appel à ${name}. Votre avis, quel qu'il soit, nous aide à nous améliorer et aide d'autres clients à choisir.</p>` +
         button(input.link, "Donner mon avis") +
         `<p style="color:#78716c;font-size:13px">Vous recevez ce message unique parce que vous avez été client de ${name}. Aucun autre message ne suivra. Pour toute demande concernant vos données, répondez simplement à cet e-mail.</p>`,
+    ),
+  };
+}
+
+/** Rapport mensuel envoyé au commerçant le 1er du mois. */
+export function monthlyReportEmail(report: MonthlyReport, businessName: string) {
+  const name = escapeHtml(businessName.trim() || "votre établissement");
+  const delta = ratingDelta(report.average, report.previousAverage);
+  const cell = (value: string, label: string) =>
+    `<td style="padding:14px 12px;background:#f5f4f1;border-radius:12px;width:50%"><div style="font-size:26px;font-weight:700;color:#15130f">${value}</div><div style="font-size:13px;color:#6f6a60">${label}</div></td>`;
+  const forces = report.insights?.forces.slice(0, 2).map((f) => `<li><strong>${escapeHtml(f.theme)}</strong> : ${escapeHtml(f.detail)}</li>`).join("") ?? "";
+  const irritant = report.insights?.irritants[0];
+  const since = report.sinceJoin;
+  return {
+    subject: `Votre mois de ${report.label} : ${report.received} avis, note ${formatRating(report.average)}`,
+    html: layout(
+      `<p style="font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:#b9783a">Rapport de ${escapeHtml(report.label)}</p>` +
+        `<h1 style="font-size:24px;margin:4px 0 16px">${name}</h1>` +
+        `<table role="presentation" cellspacing="8" style="width:100%;border-collapse:separate"><tr>` +
+        cell(String(report.received), "avis reçus") +
+        cell(`${formatRating(report.average)}${delta && delta !== "stable" ? ` <span style="font-size:14px;color:${delta.startsWith("+") ? "#1f7a4d" : "#b8574a"}">${delta}</span>` : ""}`, "note du mois") +
+        `</tr><tr>` +
+        cell(report.responseRate === null ? "–" : `${report.responseRate} %`, "avis répondus") +
+        cell(String(report.googleClicks), "clients envoyés vers Google") +
+        `</tr></table>` +
+        (since.reviews
+          ? `<p>Depuis votre arrivée sur ${escapeHtml(APP_NAME)} : <strong>${since.reviews} nouveaux avis</strong>${
+              since.averageBefore === null
+                ? ""
+                : formatRating(since.averageBefore) === formatRating(since.averageNow)
+                  ? `, note stable à ${formatRating(since.averageNow)}`
+                  : `, note passée de ${formatRating(since.averageBefore)} à ${formatRating(since.averageNow)}`
+            }.</p>`
+          : "") +
+        (forces ? `<p style="margin-bottom:4px"><strong>Ce que vos clients aiment</strong></p><ul style="margin-top:0">${forces}</ul>` : "") +
+        (irritant ? `<p><strong>À surveiller</strong> : ${escapeHtml(irritant.theme)}. ${escapeHtml(irritant.detail)}</p>` : "") +
+        (report.insights?.action ? `<p style="padding:12px 14px;border-left:3px solid #e3a964;background:#fbf4e2"><strong>L'action du mois</strong> : ${escapeHtml(report.insights.action)}</p>` : "") +
+        button(`${siteUrl()}/app/analyse`, "Voir le détail") +
+        `<p style="color:#78716c;font-size:13px">${escapeHtml(APP_NAME)} · Ce rapport se désactive dans Réglages.</p>`,
     ),
   };
 }

@@ -20,6 +20,10 @@ const ALLOWED = [
   "GOOGLE_CLIENT_ID",
   "GOOGLE_CLIENT_SECRET",
   "GOOGLE_PUBSUB_TOPIC",
+  "TWILIO_ACCOUNT_SID",
+  "TWILIO_AUTH_TOKEN",
+  "TWILIO_SMS_FROM",
+  "TWILIO_WHATSAPP_FROM",
 ];
 
 function done(key: "ok" | "erreur", message: string, anchor = ""): never {
@@ -56,6 +60,12 @@ export async function saveKeysAction(formData: FormData) {
     }
     if (/_live_/.test(updates.STRIPE_SECRET_KEY) && formData.get("live_ok") !== "on") {
       done("erreur", "Clé réelle détectée. Cochez la case de confirmation, ou utilisez d'abord une clé de test (sk_test_).", anchor);
+    }
+  }
+  for (const key of ["TWILIO_SMS_FROM", "TWILIO_WHATSAPP_FROM"]) {
+    if (updates[key]) {
+      updates[key] = updates[key].replace(/[\s.\-()]/g, "").replace(/^whatsapp:/i, "");
+      if (!/^\+\d{8,15}$/.test(updates[key])) done("erreur", "Les numéros Twilio s'écrivent au format international : +33…", anchor);
     }
   }
   if (updates.EMAIL_FROM && !/^\S+@\S+\.\S+$/.test(updates.EMAIL_FROM)) {

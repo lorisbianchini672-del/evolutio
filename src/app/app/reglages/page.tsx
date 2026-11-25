@@ -1,10 +1,19 @@
 import { Notice } from "@/components/notice";
+import { PushSetup } from "@/components/push-setup";
 import { SubmitButton } from "@/components/submit-button";
 import { SECTORS, TONES } from "@/lib/config";
 import { googleConfigured } from "@/lib/google";
 import { requireAccount } from "@/lib/session";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { clearDemoAction, disconnectGoogleAction, saveSettingsAction, updatePasswordAction } from "../actions";
+import { smsConfigured, whatsappConfigured } from "@/lib/alerts";
+import { pushConfigured, vapidPublicKey } from "@/lib/push";
+import {
+  clearDemoAction,
+  disconnectGoogleAction,
+  saveSettingsAction,
+  testPhoneAlertAction,
+  updatePasswordAction,
+} from "../actions";
 
 export const metadata = { title: "Réglages" };
 
@@ -23,6 +32,8 @@ export default async function SettingsPage({
       .maybeSingle<{ google_email: string | null; connected_at: string }>(),
     supabase.from("locations").select("id", { count: "exact", head: true }).eq("is_demo", true),
   ]);
+
+  const phoneReady = smsConfigured() || whatsappConfigured();
 
   return (
     <div className="space-y-6">
@@ -100,8 +111,63 @@ export default async function SettingsPage({
             <span>M&apos;alerter par e-mail quand un avis attend ma validation</span>
           </label>
         </div>
+
+        <div className="grid gap-4 border-t border-stone-200 pt-5 sm:grid-cols-2">
+          <div>
+            <label className="label" htmlFor="alert_channel">
+              Alerte immédiate pour les avis de 1 à 3 étoiles
+            </label>
+            <select className="input" id="alert_channel" name="alert_channel" defaultValue={account.alert_channel ?? "none"}>
+              <option value="none">Pas d&apos;alerte sur le téléphone</option>
+              <option value="sms">Par SMS</option>
+              <option value="whatsapp">Par WhatsApp</option>
+            </select>
+            {!phoneReady && (
+              <p className="hint">Les SMS et WhatsApp partent dès que les clés Twilio sont ajoutées dans l&apos;installation.</p>
+            )}
+          </div>
+          <div>
+            <label className="label" htmlFor="alert_phone">
+              Numéro de téléphone
+            </label>
+            <input
+              className="input"
+              id="alert_phone"
+              name="alert_phone"
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel"
+              defaultValue={account.alert_phone ?? ""}
+              maxLength={30}
+              placeholder="06 12 34 56 78"
+            />
+          </div>
+          <label className="flex items-start gap-2 text-sm text-stone-700 sm:col-span-2">
+            <input type="checkbox" name="report_email" defaultChecked={account.report_email ?? true} className="mt-1" />
+            <span>Recevoir le rapport du mois par e-mail, le 1er de chaque mois</span>
+          </label>
+        </div>
         <SubmitButton>Enregistrer</SubmitButton>
       </form>
+
+      <section className="card space-y-3">
+        <h2 className="font-semibold">Notifications sur ce téléphone</h2>
+        <p className="text-sm text-stone-600">
+          Une notification à chaque nouvel avis : vous l&apos;ouvrez, la réponse est prête, vous publiez en un geste.
+        </p>
+        {pushConfigured() ? (
+          <PushSetup publicKey={vapidPublicKey()} />
+        ) : (
+          <p className="hint">Les clés de notification (VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY) ne sont pas renseignées sur ce serveur.</p>
+        )}
+        {account.alert_channel !== "none" && account.alert_phone && (
+          <form action={testPhoneAlertAction}>
+            <SubmitButton className="btn btn-secondary">
+              Tester l&apos;alerte {account.alert_channel === "whatsapp" ? "WhatsApp" : "SMS"}
+            </SubmitButton>
+          </form>
+        )}
+      </section>
 
       <section className="card space-y-3">
         <h2 className="font-semibold">Fiche Google</h2>

@@ -1,8 +1,11 @@
 import { Notice } from "@/components/notice";
 import { SubmitButton } from "@/components/submit-button";
 import { aiConfigured } from "@/lib/ai";
+import { emailConfigured } from "@/lib/email";
+import { formatRating, loadReport, ratingDelta } from "@/lib/report";
 import { requireSubscriber } from "@/lib/session";
-import { analyzeAction } from "../actions";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { analyzeAction, sendReportAction } from "../actions";
 
 export const metadata = { title: "Analyse" };
 
@@ -23,6 +26,8 @@ function Stat({ label, value, hint }: { label: string; value: string; hint?: str
 export default async function AnalysisPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const params = await searchParams;
   const { supabase, account } = await requireSubscriber();
+  const report = await loadReport(createAdminClient(), account, 0);
+  const delta = ratingDelta(report.average, report.previousAverage);
   const { data } = await supabase
     .from("reviews")
     .select("rating, status, review_created_at, reply_published_at")
@@ -64,6 +69,66 @@ export default async function AnalysisPage({ searchParams }: { searchParams: Pro
         <p className="card text-stone-600">Aucun avis pour l&apos;instant. Connectez votre fiche Google ou chargez les avis d&apos;exemple depuis l&apos;onglet Avis.</p>
       ) : (
         <>
+          <section className="card report space-y-4" aria-labelledby="t-report">
+            <div className="flex flex-wrap items-end justify-between gap-2">
+              <div>
+                <p className="reply-k">Rapport du mois · en cours</p>
+                <h2 id="t-report" className="text-xl font-semibold capitalize">
+                  {report.label}
+                </h2>
+              </div>
+              {emailConfigured() && (
+                <form action={sendReportAction}>
+                  <SubmitButton className="btn btn-secondary">M&apos;envoyer le rapport du mois dernier</SubmitButton>
+                </form>
+              )}
+            </div>
+            <div className="report-grid">
+              <div>
+                <p className="report-n">{report.received}</p>
+                <p className="report-l">avis reçus</p>
+              </div>
+              <div>
+                <p className="report-n">
+                  {formatRating(report.average)}
+                  {delta && delta !== "stable" && <span className={delta.startsWith("+") ? "up" : "down"}>{delta}</span>}
+                </p>
+                <p className="report-l">note du mois</p>
+              </div>
+              <div>
+                <p className="report-n">{report.responseRate === null ? "–" : `${report.responseRate} %`}</p>
+                <p className="report-l">avis répondus</p>
+              </div>
+              <div>
+                <p className="report-n">{report.googleClicks}</p>
+                <p className="report-l">clients envoyés vers Google</p>
+              </div>
+            </div>
+            {report.sinceJoin.reviews > 0 && (
+              <p className="report-since">
+                Depuis votre arrivée : <strong>{report.sinceJoin.reviews} nouveaux avis</strong>
+                {report.sinceJoin.averageBefore !== null &&
+                  (formatRating(report.sinceJoin.averageBefore) === formatRating(report.sinceJoin.averageNow) ? (
+                    <>
+                      , note stable à <strong>{formatRating(report.sinceJoin.averageNow)}</strong>
+                    </>
+                  ) : (
+                    <>
+                      , note passée de <strong>{formatRating(report.sinceJoin.averageBefore)}</strong> à{" "}
+                      <strong>{formatRating(report.sinceJoin.averageNow)}</strong>
+                    </>
+                  ))}
+                .
+              </p>
+            )}
+            {insights?.action && (
+              <p className="report-action">
+                <span>L&apos;action du mois</span>
+                {insights.action}
+              </p>
+            )}
+          </section>
+
           <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
             <Stat label="Note moyenne" value={average.toFixed(1).replace(".", ",")} hint={`sur ${total} avis`} />
             <Stat label="Taux de réponse" value={`${answerRate} %`} hint={`${answered} réponses publiées`} />

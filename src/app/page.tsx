@@ -3,9 +3,13 @@ import { HeroFeed } from "@/components/landing/hero-feed";
 import { HeroReel } from "@/components/landing/hero-reel";
 import { Lacquer } from "@/components/landing/lacquer";
 import { LandingMotion } from "@/components/landing/motion";
+import { Calculator } from "@/components/landing/calculator";
+import { LiveDemo } from "@/components/landing/live-demo";
 import { Simulator } from "@/components/landing/simulator";
 import { LogoMark } from "@/components/logo-mark";
-import { APP_NAME, PLAN_IDS, PLANS, TRIAL_DAYS } from "@/lib/config";
+import { APP_NAME, CITY, CONTACT_EMAIL, PLAN_IDS, PLANS, TRIAL_DAYS } from "@/lib/config";
+import { TESTIMONIALS } from "@/lib/testimonials";
+import { TRADES as TRADE_PAGES } from "@/lib/trades";
 
 const TRADES = ["Boulangeries", "Restaurants", "Plombiers", "Instituts de beauté", "Agences immobilières", "Garages", "Fleuristes", "Coiffeurs", "Électriciens", "Caves à vin"];
 
@@ -147,7 +151,7 @@ export default function LandingPage() {
                   </span>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  <h3 className="h-md">Les avis négatifs d&apos;abord.</h3>
+                  <h3 className="h-md">Alerte sur votre téléphone, réponse en un geste.</h3>
                 </div>
               </article>
 
@@ -188,9 +192,23 @@ export default function LandingPage() {
                   ))}
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  <h3 className="h-md">Ce que disent vos clients, en clair.</h3>
+                  <h3 className="h-md">Votre rapport, chaque mois.</h3>
                 </div>
               </article>
+            </div>
+          </div>
+        </section>
+
+        <section id="calcul" aria-labelledby="t-calc" style={{ paddingTop: 0, scrollMarginTop: 70 }}>
+          <div className="wrap" style={{ display: "flex", flexDirection: "column", gap: 36 }}>
+            <div data-rv style={{ display: "flex", flexDirection: "column", gap: 14, maxWidth: 720 }}>
+              <p className="eyebrow">Le calcul</p>
+              <h2 id="t-calc" className="h-lg">
+                Ce que vous coûtent <span className="serif gold-deep">les avis sans réponse.</span>
+              </h2>
+            </div>
+            <div data-rv>
+              <Calculator />
             </div>
           </div>
         </section>
@@ -198,6 +216,9 @@ export default function LandingPage() {
         <section id="demo" className="sec-dark" aria-labelledby="t-demo" style={{ scrollMarginTop: 52 }}>
           <div className="wrap" data-rv>
             <Simulator />
+          </div>
+          <div className="wrap" data-rv style={{ marginTop: "clamp(56px, 8vw, 110px)" }}>
+            <LiveDemo />
           </div>
         </section>
 
@@ -220,6 +241,10 @@ export default function LandingPage() {
                       <span className="price">{plan.priceEur} €</span>
                       <span style={{ color: hot ? "#a8a398" : "var(--mute)" }}> HT / mois</span>
                     </p>
+                    <p className="per-day">
+                      soit {((plan.priceEur * 12) / 365).toFixed(2).replace(".", ",")} € par jour
+                      {(plan.priceEur * 12) / 365 < 1.5 ? ", moins qu'un café" : ""}
+                    </p>
                     <ul>
                       {plan.features.slice(0, 4).map((feature) => (
                         <li key={feature}>{feature}</li>
@@ -231,6 +256,91 @@ export default function LandingPage() {
                   </div>
                 );
               })}
+            </div>
+          </div>
+        </section>
+
+        {TESTIMONIALS.length > 0 && (
+          <section aria-labelledby="t-avis-clients" style={{ paddingTop: 0 }}>
+            <div className="wrap" style={{ display: "flex", flexDirection: "column", gap: 36 }}>
+              <h2 id="t-avis-clients" className="h-lg" data-rv>
+                Ils répondent <span className="serif gold-deep">à chaque avis.</span>
+              </h2>
+              <div className="proofs">
+                {TESTIMONIALS.map((t) => (
+                  <figure key={t.name + t.business} className="proof" data-rv>
+                    {t.before !== undefined && t.after !== undefined && (
+                      <p className="proof-score">
+                        {t.before.toFixed(1).replace(".", ",")} <span>→</span> {t.after.toFixed(1).replace(".", ",")} ★
+                      </p>
+                    )}
+                    <blockquote>« {t.quote} »</blockquote>
+                    <figcaption>
+                      <strong>{t.name}</strong> · {t.business}
+                    </figcaption>
+                  </figure>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        <section aria-labelledby="t-local" style={{ paddingTop: 0 }}>
+          <div className="wrap">
+            <div className="local" data-rv>
+              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                <p className="eyebrow">Basé à {CITY}</p>
+                <h2 id="t-local" className="h-lg">
+                  On vous installe tout, <span className="serif gold-deep">en 15 minutes.</span>
+                </h2>
+                <p className="lead">
+                  Pas une plateforme lointaine : une équipe à {CITY}. On connecte votre fiche Google, on règle votre ton et on
+                  pose le QR code avec vous, au comptoir ou en visio.
+                </p>
+                <div className="cta-row" style={{ justifyContent: "flex-start" }}>
+                  {CONTACT_EMAIL ? (
+                    <a className="btn btn-primary btn-lg" href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent("Installation Evolutio")}`}>
+                      Réserver mon installation
+                    </a>
+                  ) : (
+                    <Link className="btn btn-primary btn-lg" href="/inscription">
+                      Réserver mon installation
+                    </Link>
+                  )}
+                </div>
+              </div>
+              <ul className="local-list">
+                <li>
+                  <b>1</b> Connexion de votre fiche Google
+                </li>
+                <li>
+                  <b>2</b> Votre ton, votre signature, vos consignes
+                </li>
+                <li>
+                  <b>3</b> QR code et affiche pour le comptoir
+                </li>
+                <li>
+                  <b>4</b> Notifications sur votre téléphone
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section aria-labelledby="t-metiers" style={{ paddingTop: 0 }}>
+          <div className="wrap" style={{ display: "flex", flexDirection: "column", gap: 28 }}>
+            <h2 id="t-metiers" className="h-md" data-rv>
+              Pensé pour votre métier
+            </h2>
+            <div className="trades" data-rv>
+              {TRADE_PAGES.map((t) => (
+                <Link key={t.slug} href={`/pour/${t.slug}`} className="trade-link">
+                  <span>{t.plural.charAt(0).toUpperCase() + t.plural.slice(1)}</span>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
+                    <path d="M5 12h14M13 6l6 6-6 6" />
+                  </svg>
+                </Link>
+              ))}
             </div>
           </div>
         </section>
