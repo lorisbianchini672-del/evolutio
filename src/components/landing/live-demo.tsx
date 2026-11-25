@@ -3,18 +3,18 @@
 import { useEffect, useRef, useState } from "react";
 
 const SECTOR_CHOICES = [
-  ["garage", "Garage, location"],
+  ["commerce", "Commerce"],
   ["restaurant", "Restaurant"],
   ["boulangerie", "Boulangerie"],
   ["coiffure", "Coiffure"],
-  ["commerce", "Commerce"],
+  ["garage", "Garage, location"],
   ["artisan", "Artisan"],
   ["beaute", "Institut de beauté"],
   ["immobilier", "Immobilier"],
 ] as const;
 
 /** Démo en direct : le visiteur colle un vrai avis, l'IA propose la réponse, mot à mot. */
-export function LiveDemo({ defaultSector = "garage" }: { defaultSector?: string }) {
+export function LiveDemo({ defaultSector = "commerce" }: { defaultSector?: string }) {
   const [review, setReview] = useState("");
   const [rating, setRating] = useState(2);
   const [sector, setSector] = useState(defaultSector);
@@ -89,7 +89,7 @@ export function LiveDemo({ defaultSector = "garage" }: { defaultSector?: string 
           maxLength={800}
           rows={4}
           required
-          placeholder="Exemple : Voiture rendue avec deux jours de retard, et personne ne m'a prévenu…"
+          placeholder="Exemple : Accueil sympathique, mais 30 minutes d'attente et personne pour s'excuser…"
           aria-label="Texte de l'avis"
         />
         <div className="live-row">

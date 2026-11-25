@@ -9,7 +9,6 @@ import { Simulator } from "@/components/landing/simulator";
 import { LogoMark } from "@/components/logo-mark";
 import { APP_NAME, CITY, CONTACT_EMAIL, PLAN_IDS, PLANS, TRIAL_DAYS } from "@/lib/config";
 import { TESTIMONIALS } from "@/lib/testimonials";
-import { TRADES as TRADE_PAGES } from "@/lib/trades";
 
 const TRADES = ["Boulangeries", "Restaurants", "Plombiers", "Instituts de beauté", "Agences immobilières", "Garages", "Fleuristes", "Coiffeurs", "Électriciens", "Caves à vin"];
 
@@ -323,24 +322,6 @@ export default function LandingPage() {
                   <b>4</b> Notifications sur votre téléphone
                 </li>
               </ul>
-            </div>
-          </div>
-        </section>
-
-        <section aria-labelledby="t-metiers" style={{ paddingTop: 0 }}>
-          <div className="wrap" style={{ display: "flex", flexDirection: "column", gap: 28 }}>
-            <h2 id="t-metiers" className="h-md" data-rv>
-              Pensé pour votre métier
-            </h2>
-            <div className="trades" data-rv>
-              {TRADE_PAGES.map((t) => (
-                <Link key={t.slug} href={`/pour/${t.slug}`} className="trade-link">
-                  <span>{t.plural.charAt(0).toUpperCase() + t.plural.slice(1)}</span>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
-                    <path d="M5 12h14M13 6l6 6-6 6" />
-                  </svg>
-                </Link>
-              ))}
             </div>
           </div>
         </section>
