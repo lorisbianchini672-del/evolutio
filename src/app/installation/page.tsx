@@ -59,6 +59,11 @@ export default async function SetupPage({ searchParams }: { searchParams: Promis
     "Identifiants Google enregistrés. La connexion des fiches fonctionne dès que Google a approuvé l'accès à son API.",
     "À faire en dernier : Google doit d'abord approuver votre accès à l'API Business Profile.",
   );
+  const placesStep = simpleStep(
+    ["GOOGLE_PLACES_API_KEY"],
+    "Clé Places enregistrée : audit de fiche, suivi des concurrents et audit gratuit du site sont actifs.",
+    "Facultatif. Active l'audit de fiche, le suivi des concurrents et la page d'audit gratuit du site.",
+  );
   const twilio = simpleStep(
     ["TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN"],
     "Twilio connecté : les alertes SMS ou WhatsApp des avis négatifs sont actives.",
@@ -178,7 +183,8 @@ export default async function SetupPage({ searchParams }: { searchParams: Promis
         ) : (
           <p className="hint">
             Variables : STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, STRIPE_PRICE_ESSENTIEL, STRIPE_PRICE_PRO,
-            STRIPE_PRICE_MULTI, STRIPE_PORTAL_CONFIG. Webhook à pointer vers {siteUrl()}/api/stripe/webhook
+            STRIPE_PRICE_MULTI, STRIPE_PORTAL_CONFIG. Webhook à pointer vers {siteUrl()}/api/stripe/webhook, avec les
+            événements customer.subscription.*, checkout.session.completed et invoice.paid (parrainage).
           </p>
         )}
       </StepCard>
@@ -239,7 +245,9 @@ export default async function SetupPage({ searchParams }: { searchParams: Promis
             <Field name="TWILIO_WHATSAPP_FROM" label="Numéro WhatsApp Twilio" placeholder="+14155238886" type="text" />
             <p className="hint sm:col-span-2">
               Pour WhatsApp, commencez avec le « sandbox » de Twilio. En production, Meta impose un modèle de message
-              validé pour les messages envoyés en premier.
+              validé pour les messages envoyés en premier.{" "}
+              Pour que le commerçant puisse répondre « OUI » et publier, indiquez dans Twilio cette adresse pour les
+              messages entrants : <code>{`${siteUrl()}/api/twilio/entrant`}</code>
             </p>
             <div className="sm:col-span-2">
               <SubmitButton className="btn btn-secondary">Enregistrer</SubmitButton>
@@ -247,6 +255,24 @@ export default async function SetupPage({ searchParams }: { searchParams: Promis
           </form>
         ) : (
           <p className="hint">Variables : TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_SMS_FROM, TWILIO_WHATSAPP_FROM</p>
+        )}
+      </StepCard>
+
+      <StepCard id="places" n={7} title="Google Places : audit et concurrents (facultatif)" state={placesStep.state} detail={placesStep.detail}>
+        {local ? (
+          <form action={saveKeysAction} className="grid gap-3">
+            <input type="hidden" name="section" value="places" />
+            <Field name="GOOGLE_PLACES_API_KEY" label="Clé API Places" placeholder="AIza…" />
+            <p className="hint">
+              Dans Google Cloud : activez « Places API (New) », créez une clé limitée à cette API, et fixez un plafond de
+              dépense. L&apos;API est payante à l&apos;usage au-delà du crédit offert par Google : vérifiez la grille en vigueur.
+            </p>
+            <div>
+              <SubmitButton className="btn btn-secondary">Enregistrer</SubmitButton>
+            </div>
+          </form>
+        ) : (
+          <p className="hint">Variable : GOOGLE_PLACES_API_KEY</p>
         )}
       </StepCard>
 

@@ -187,3 +187,50 @@ create index if not exists collect_events_user_idx on public.collect_events (use
 alter table public.collect_events enable row level security;
 drop policy if exists "collect_events_select_own" on public.collect_events;
 create policy "collect_events_select_own" on public.collect_events for select using (auth.uid() = user_id);
+
+-- Version 3 : validation par SMS/WhatsApp, parrainage, concurrents, publications Google --------
+-- Ce bloc peut être exécuté sur une base existante : il ne fait qu'ajouter.
+
+alter table public.accounts add column if not exists last_alert_review_id uuid;
+alter table public.accounts add column if not exists referral_code text unique;
+alter table public.accounts add column if not exists referred_by uuid references auth.users (id) on delete set null;
+alter table public.accounts add column if not exists referral_rewarded_at timestamptz;
+alter table public.accounts add column if not exists onboarding_done boolean not null default false;
+alter table public.locations add column if not exists place_id text;
+
+-- Concurrents suivis (fiches Google publiques, via l'API Places)
+create table if not exists public.competitors (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  place_id text not null,
+  name text not null,
+  address text not null default '',
+  rating numeric(2, 1),
+  review_count integer,
+  previous_rating numeric(2, 1),
+  previous_count integer,
+  maps_url text,
+  updated_at timestamptz not null default now(),
+  created_at timestamptz not null default now(),
+  unique (user_id, place_id)
+);
+alter table public.competitors enable row level security;
+drop policy if exists "competitors_select_own" on public.competitors;
+create policy "competitors_select_own" on public.competitors for select using (auth.uid() = user_id);
+
+-- Publications Google (posts « Nouveautés ») rédigées et publiées depuis Evolutio
+create table if not exists public.google_posts (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  location_id uuid not null references public.locations (id) on delete cascade,
+  text text not null,
+  google_post_name text,
+  status text not null default 'draft' check (status in ('draft', 'published', 'error')),
+  error text,
+  created_at timestamptz not null default now(),
+  published_at timestamptz
+);
+create index if not exists google_posts_user_idx on public.google_posts (user_id, created_at desc);
+alter table public.google_posts enable row level security;
+drop policy if exists "google_posts_select_own" on public.google_posts;
+create policy "google_posts_select_own" on public.google_posts for select using (auth.uid() = user_id);

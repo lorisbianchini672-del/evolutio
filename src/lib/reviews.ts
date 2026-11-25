@@ -2,6 +2,7 @@ import { generateReply } from "./ai";
 import { decryptSecret } from "./crypto";
 import { listReviews, publishReply, refreshAccessToken } from "./google";
 import { mapGoogleReview } from "./google-map";
+import { checkReply, opening } from "./guard";
 import { notifyNewReview } from "./notify";
 import { createAdminClient } from "./supabase/admin";
 import type { Account, Location, Review } from "./types";
@@ -27,16 +28,36 @@ async function loadAccount(userId: string): Promise<Account> {
   return data;
 }
 
-/** Rédige (ou régénère) le brouillon d'un avis. */
-export async function draftReview(userId: string, reviewId: string): Promise<string> {
+/** Dernières réponses publiées : elles servent de modèle de style et de liste « à ne pas répéter ». */
+export async function recentReplies(userId: string, limit = 8): Promise<string[]> {
+  const { data } = await createAdminClient()
+    .from("reviews")
+    .select("reply_text, is_demo")
+    .eq("user_id", userId)
+    .eq("status", "published")
+    .order("reply_published_at", { ascending: false })
+    .limit(limit * 2);
+  const rows = (data ?? []) as { reply_text: string | null; is_demo: boolean }[];
+  const real = rows.filter((r) => !r.is_demo && r.reply_text);
+  return (real.length ? real : rows.filter((r) => r.reply_text)).map((r) => r.reply_text as string).slice(0, limit);
+}
+
+/** Rédige (ou régénère) le brouillon d'un avis, dans le style des réponses déjà publiées. */
+export async function draftReview(userId: string, reviewId: string, instruction?: string): Promise<string> {
   const admin = createAdminClient();
-  const [account, { data: review }] = await Promise.all([
+  const [account, { data: review }, recent] = await Promise.all([
     loadAccount(userId),
     admin.from("reviews").select("*").eq("id", reviewId).eq("user_id", userId).single<Review>(),
+    recentReplies(userId),
   ]);
   if (!review) throw new Error("Avis introuvable.");
   if (review.status === "published") throw new Error("Cet avis a déjà une réponse publiée.");
-  const draft = await generateReply(review, account);
+  const draft = await generateReply(review, {
+    ...account,
+    examples: recent.slice(0, 5),
+    avoid: recent.map(opening),
+    instruction,
+  });
   await admin.from("reviews").update({ draft_text: draft, status: "drafted" }).eq("id", reviewId).eq("user_id", userId);
   return draft;
 }
@@ -66,6 +87,31 @@ export async function publishReview(userId: string, reviewId: string, text: stri
     .update({ reply_text: reply, draft_text: reply, reply_published_at: new Date().toISOString(), status: "published" })
     .eq("id", reviewId)
     .eq("user_id", userId);
+}
+
+/**
+ * Publie le brouillon tel quel (depuis une notification ou une réponse « OUI » par SMS/WhatsApp).
+ * Refuse si la relecture automatique a un doute : le gérant doit alors ouvrir l'avis.
+ */
+export async function publishDraft(userId: string, reviewId: string): Promise<{ ok: true } | { ok: false; reason: string }> {
+  const admin = createAdminClient();
+  const [account, { data: review }, recent] = await Promise.all([
+    loadAccount(userId),
+    admin.from("reviews").select("*").eq("id", reviewId).eq("user_id", userId).maybeSingle<Review>(),
+    recentReplies(userId),
+  ]);
+  if (!review) return { ok: false, reason: "Avis introuvable." };
+  if (review.status === "published") return { ok: false, reason: "Cet avis a déjà une réponse publiée." };
+  if (!review.draft_text) return { ok: false, reason: "Aucune réponse prête pour cet avis." };
+  const warnings = checkReply(review.draft_text, {
+    sector: account.sector,
+    privateContact: account.private_contact,
+    signature: account.signature,
+    recentReplies: recent,
+  });
+  if (warnings.length) return { ok: false, reason: `À relire avant publication : ${warnings[0].message}` };
+  await publishReview(userId, reviewId, review.draft_text);
+  return { ok: true };
 }
 
 export type SyncResult = { imported: number; drafted: number; autoPublished: number };
@@ -143,7 +189,14 @@ export async function syncLocation(
       const draft = await draftReview(userId, inserted.id);
       result.drafted += 1;
       const threshold = account.auto_publish_min_rating;
-      if (threshold && threshold >= 4 && r.rating >= threshold) {
+      const warnings = checkReply(draft, {
+        sector: account.sector,
+        privateContact: account.private_contact,
+        signature: account.signature,
+      });
+      // Jamais de publication automatique pour les métiers soumis au secret, ni si la relecture a un doute.
+      const regulated = account.sector === "sante" || account.sector === "juridique";
+      if (threshold && threshold >= 4 && r.rating >= threshold && !regulated && warnings.length === 0) {
         await publishReview(userId, inserted.id, draft, accessToken);
         result.autoPublished += 1;
       } else {
@@ -152,6 +205,8 @@ export async function syncLocation(
           rating: r.rating,
           reviewer_name: r.reviewer_name,
           comment: r.comment,
+          draft,
+          draftSafe: warnings.length === 0,
         });
       }
     } catch (err) {

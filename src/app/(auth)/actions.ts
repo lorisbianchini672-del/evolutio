@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { siteUrl } from "@/lib/config";
+import { attachReferral } from "@/lib/referral";
 import { isLocalMode } from "@/lib/local-env";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -25,8 +26,13 @@ export async function signUpAction(formData: FormData) {
   const supabase = await createClient();
   if (isLocalMode()) {
     // En local, pas d'e-mail de confirmation à attendre : le compte est validé tout de suite.
-    const { error: createError } = await createAdminClient().auth.admin.createUser({ email, password, email_confirm: true });
+    const { data: created, error: createError } = await createAdminClient().auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+    });
     if (createError) back("/inscription", "erreur", createError.message);
+    if (created.user) await attachReferral(created.user.id, formData.get("parrain")).catch(() => undefined);
     const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
     if (signInError) back("/connexion", "erreur", "Compte créé. Connectez-vous pour continuer.");
     redirect("/app");
@@ -37,6 +43,7 @@ export async function signUpAction(formData: FormData) {
     options: { emailRedirectTo: `${siteUrl()}/auth/callback` },
   });
   if (error) back("/inscription", "erreur", error.message);
+  if (data.user) await attachReferral(data.user.id, formData.get("parrain")).catch(() => undefined);
   if (data.session) redirect("/app"); // confirmation d'e-mail désactivée dans Supabase
   back("/inscription", "ok", "Compte créé. Ouvrez l'e-mail de confirmation que nous venons d'envoyer pour l'activer.");
 }

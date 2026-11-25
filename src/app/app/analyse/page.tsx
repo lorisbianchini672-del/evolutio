@@ -9,7 +9,30 @@ import { analyzeAction, sendReportAction } from "../actions";
 
 export const metadata = { title: "Analyse" };
 
-type Row = { rating: number; status: string; review_created_at: string; reply_published_at: string | null };
+type Row = {
+  rating: number;
+  status: string;
+  review_created_at: string;
+  reply_published_at: string | null;
+  location_id: string;
+  is_demo: boolean;
+};
+
+/** Délai moyen entre l'avis et la réponse publiée, en heures. */
+function averageDelayHours(rows: Row[]): number | null {
+  const delays = rows
+    .filter((r) => r.status === "published" && r.reply_published_at)
+    .map((r) => (new Date(r.reply_published_at as string).getTime() - new Date(r.review_created_at).getTime()) / 3_600_000)
+    .filter((h) => h >= 0 && h < 24 * 365);
+  return delays.length ? delays.reduce((a, b) => a + b, 0) / delays.length : null;
+}
+
+function formatDelay(hours: number | null): string {
+  if (hours === null) return "–";
+  if (hours < 1) return "< 1 h";
+  if (hours < 48) return `${Math.round(hours)} h`;
+  return `${Math.round(hours / 24)} j`;
+}
 
 const MONTHS = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
 
@@ -30,11 +53,28 @@ export default async function AnalysisPage({ searchParams }: { searchParams: Pro
   const delta = ratingDelta(report.average, report.previousAverage);
   const { data } = await supabase
     .from("reviews")
-    .select("rating, status, review_created_at, reply_published_at")
+    .select("rating, status, review_created_at, reply_published_at, location_id, is_demo")
     .order("review_created_at", { ascending: false })
     .limit(1000)
     .returns<Row[]>();
   const reviews = data ?? [];
+  const { data: locationRows } = await supabase.from("locations").select("id, title").order("created_at");
+  const perLocation = (locationRows ?? [])
+    .map((l) => {
+      const rows = reviews.filter((r) => r.location_id === l.id);
+      const done = rows.filter((r) => r.status === "published").length;
+      return {
+        id: l.id as string,
+        title: l.title as string,
+        count: rows.length,
+        average: rows.length ? rows.reduce((s, r) => s + r.rating, 0) / rows.length : null,
+        rate: rows.length ? Math.round((done / rows.length) * 100) : null,
+        delay: averageDelayHours(rows),
+      };
+    })
+    .filter((l) => l.count > 0)
+    .sort((a, b) => (b.average ?? 0) - (a.average ?? 0));
+  const delayHours = averageDelayHours(reviews);
   const total = reviews.length;
   const average = total ? reviews.reduce((sum, r) => sum + r.rating, 0) / total : 0;
   const answered = reviews.filter((r) => r.status === "published").length;
@@ -132,8 +172,45 @@ export default async function AnalysisPage({ searchParams }: { searchParams: Pro
           <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
             <Stat label="Note moyenne" value={average.toFixed(1).replace(".", ",")} hint={`sur ${total} avis`} />
             <Stat label="Taux de réponse" value={`${answerRate} %`} hint={`${answered} réponses publiées`} />
-            <Stat label="En attente" value={String(pending)} hint={pending ? "à traiter dans l'onglet Avis" : "tout est à jour"} />
+            <Stat label="Délai de réponse" value={formatDelay(delayHours)} hint={pending ? `${pending} avis en attente` : "tout est à jour"} />
             <Stat label="Avis ce mois-ci" value={String(months[5].count)} hint={`${months[4].count} le mois dernier`} />
+          </div>
+
+          {perLocation.length > 1 && (
+            <section className="card space-y-3" aria-labelledby="t-locs">
+              <div className="flex flex-wrap items-end justify-between gap-2">
+                <h2 id="t-locs" className="font-semibold">
+                  Vos établissements
+                </h2>
+                <p className="hint">Classés par note moyenne</p>
+              </div>
+              <div className="loc-table" role="table" aria-label="Comparatif des établissements">
+                <div className="loc-row loc-head" role="row">
+                  <span role="columnheader">Établissement</span>
+                  <span role="columnheader">Note</span>
+                  <span role="columnheader">Avis</span>
+                  <span role="columnheader">Réponses</span>
+                  <span role="columnheader">Délai</span>
+                </div>
+                {perLocation.map((l, i) => (
+                  <div key={l.id} className="loc-row" role="row">
+                    <span role="cell">
+                      <b>{i + 1}.</b> {l.title}
+                    </span>
+                    <span role="cell">{l.average === null ? "–" : l.average.toFixed(1).replace(".", ",")} ★</span>
+                    <span role="cell">{l.count}</span>
+                    <span role="cell">{l.rate === null ? "–" : `${l.rate} %`}</span>
+                    <span role="cell">{formatDelay(l.delay)}</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          <div className="flex flex-wrap gap-2">
+            <a href="/api/export/avis" className="btn btn-secondary">
+              Exporter tous les avis (CSV)
+            </a>
           </div>
 
           <div className="grid gap-4 lg:grid-cols-2">
@@ -211,6 +288,18 @@ export default async function AnalysisPage({ searchParams }: { searchParams: Pro
                 <p className="text-sm text-stone-600">Aucun irritant récurrent dans ces avis.</p>
               )}
             </div>
+            {(insights.keywords ?? []).length > 0 && (
+              <div className="md:col-span-2 space-y-2">
+                <p className="eyebrow-ok">Les mots de vos clients</p>
+                <div className="chips">
+                  {(insights.keywords ?? []).map((k) => (
+                    <span key={k} className="chip-k">
+                      {k}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
             {insights.action && (
               <p className="notice-ok md:col-span-2">
                 <span className="font-medium">À faire ce mois-ci : </span>

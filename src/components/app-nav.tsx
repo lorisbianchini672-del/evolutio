@@ -36,6 +36,16 @@ const ITEMS: Item[] = [
     ),
   },
   {
+    href: "/app/visibilite",
+    label: "Visibilité",
+    icon: (
+      <svg viewBox="0 0 24 24" aria-hidden="true" {...S}>
+        <path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z" />
+        <circle cx="12" cy="10" r="2.4" />
+      </svg>
+    ),
+  },
+  {
     href: "/app/collecte",
     label: "Collecte",
     icon: (
@@ -58,20 +68,11 @@ const ITEMS: Item[] = [
       </svg>
     ),
   },
-  {
-    href: "/app/abonnement",
-    label: "Abonnement",
-    icon: (
-      <svg viewBox="0 0 24 24" aria-hidden="true" {...S}>
-        <rect x="3.5" y="6" width="17" height="12" rx="2.5" />
-        <path d="M3.5 10h17M7 14.5h3" />
-      </svg>
-    ),
-  },
 ];
 
 function isActive(pathname: string, href: string): boolean {
   if (href === "/app") return pathname === "/app" || pathname.startsWith("/app/rapide");
+  if (href === "/app/reglages" && pathname.startsWith("/app/abonnement")) return true;
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 

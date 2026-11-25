@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Notice } from "@/components/notice";
 import { SubmitButton } from "@/components/submit-button";
 import { TRIAL_DAYS } from "@/lib/config";
+import { cleanReferralCode, REFERRAL_REWARD_MONTHS } from "@/lib/referral";
 import { signUpAction } from "../actions";
 
 export const metadata = { title: "Créer un compte" };
@@ -12,6 +13,7 @@ export default async function SignUpPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
+  const parrain = cleanReferralCode(params.parrain);
   return (
     <>
       <div>
@@ -21,7 +23,13 @@ export default async function SignUpPage({
         </p>
       </div>
       <Notice params={params} />
+      {parrain && (
+        <p className="notice-ok">
+          Invitation d&apos;un commerçant : {REFERRAL_REWARD_MONTHS} mois offert pour vous deux après votre premier paiement.
+        </p>
+      )}
       <form action={signUpAction} className="space-y-4">
+        {parrain && <input type="hidden" name="parrain" value={parrain} />}
         <div>
           <label className="label" htmlFor="email">
             E-mail professionnel

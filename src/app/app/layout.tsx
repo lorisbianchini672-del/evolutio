@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { signOutAction } from "@/app/(auth)/actions";
 import { AppNav } from "@/components/app-nav";
 import { LogoMark } from "@/components/logo-mark";
-import { APP_NAME, billingEnabled } from "@/lib/config";
+import { APP_NAME, billingEnabled, supportWhatsappUrl } from "@/lib/config";
 import { isLocalMode } from "@/lib/local-env";
 import { requireAccount } from "@/lib/session";
 
@@ -28,6 +28,15 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
           <AppNav variant="title" />
           <AppNav variant="top" />
           <span className="appx-email">{account.email}</span>
+          {supportWhatsappUrl() && (
+            <a href={supportWhatsappUrl() as string} className="appx-out appx-help" target="_blank" rel="noreferrer" aria-label="Aide sur WhatsApp">
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4.5 19.5l1.2-3.6A7.5 7.5 0 1 1 8.4 18.5z" />
+                <path d="M9.6 9.8c.3 1.8 1.8 3.4 3.6 3.9" />
+              </svg>
+              <span>Aide</span>
+            </a>
+          )}
           <form action={signOutAction}>
             <button className="appx-out" type="submit" aria-label="Se déconnecter">
               <svg

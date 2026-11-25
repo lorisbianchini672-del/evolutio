@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { isPlanId, SECTORS, siteUrl, TONES, TRIAL_DAYS } from "@/lib/config";
 import { aiConfigured, generateInsights } from "@/lib/ai";
-import { normalizePhone, phoneAlertText, sendPhoneAlert } from "@/lib/alerts";
+import { normalizePhone, phoneAlertText, reviewRequestText, sendPhoneAlert, sendPhoneMessage } from "@/lib/alerts";
 import { decryptSecret } from "@/lib/crypto";
 import { addManualReview, clearDemoData, loadDemoData } from "@/lib/demo";
 import { monthlyReportEmail, reviewRequestEmail, sendEmail } from "@/lib/email";
@@ -36,9 +36,10 @@ function inboxPath(formData: FormData): string {
 export async function draftAction(formData: FormData) {
   const { user } = await requireSubscriber();
   const id = String(formData.get("review_id") ?? "");
+  const instruction = String(formData.get("consigne") ?? "").trim().slice(0, 400) || undefined;
   let error: string | null = null;
   try {
-    await draftReview(user.id, id);
+    await draftReview(user.id, id, instruction);
   } catch (err) {
     error = messageOf(err);
   }
@@ -192,11 +193,15 @@ export async function sendRequestAction(formData: FormData) {
   const { user, account, subscription } = await requireSubscriber();
   const admin = createAdminClient();
   const locationId = String(formData.get("location_id") ?? "");
-  const recipient = String(formData.get("recipient") ?? "").trim().toLowerCase();
+  const channelRaw = String(formData.get("channel") ?? "email");
+  const channel = channelRaw === "sms" || channelRaw === "whatsapp" ? channelRaw : "email";
+  const raw = String(formData.get("recipient") ?? "").trim();
+  const recipient = channel === "email" ? raw.toLowerCase() : (normalizePhone(raw) ?? "");
 
-  if (!/^\S+@\S+\.\S+$/.test(recipient)) go("/app/collecte", "erreur", "Adresse e-mail invalide.");
+  if (channel === "email" && !/^\S+@\S+\.\S+$/.test(recipient)) go("/app/collecte", "erreur", "Adresse e-mail invalide.");
+  if (channel !== "email" && !recipient) go("/app/collecte", "erreur", "Numéro invalide. Exemple : 06 12 34 56 78.");
   if (formData.get("is_customer") !== "on") {
-    go("/app/collecte", "erreur", "Confirmez que cette personne est bien cliente de votre établissement.");
+    go("/app/collecte", "erreur", "Confirmez que cette personne est bien cliente et a accepté d'être contactée.");
   }
 
   const { data: location } = await admin
@@ -223,14 +228,17 @@ export async function sendRequestAction(formData: FormData) {
   // Une seule demande par client et par établissement : la contrainte unique de la base fait foi.
   const { data: row, error: insertError } = await admin
     .from("review_requests")
-    .insert({ user_id: user.id, location_id: location.id, recipient })
+    .insert({ user_id: user.id, location_id: location.id, recipient, channel })
     .select("id")
     .single<{ id: string }>();
   if (insertError || !row) go("/app/collecte", "erreur", "Cette adresse a déjà reçu une demande d'avis pour cet établissement.");
 
   const businessName = account.business_name.trim() || location.title;
-  const mail = reviewRequestEmail({ businessName, link: `${siteUrl()}/r/${location.slug}` });
-  const result = await sendEmail({ to: recipient, ...mail, replyTo: account.email, fromName: businessName });
+  const link = `${siteUrl()}/r/${location.slug}`;
+  const result =
+    channel === "email"
+      ? await sendEmail({ to: recipient, ...reviewRequestEmail({ businessName, link }), replyTo: account.email, fromName: businessName })
+      : await sendPhoneMessage(channel, recipient, reviewRequestText(businessName, link));
   if (!result.sent) {
     await admin.from("review_requests").delete().eq("id", row.id);
     go("/app/collecte", "erreur", result.error ?? "Envoi impossible.");
@@ -261,7 +269,9 @@ export async function saveSettingsAction(formData: FormData) {
       signature: text("signature", 120),
       private_contact: text("private_contact", 160),
       extra_instructions: text("extra_instructions", 600),
-      auto_publish_min_rating: auto === "4" ? 4 : auto === "5" ? 5 : null,
+      // Secret professionnel : pas de publication automatique pour la santé et les métiers du droit.
+      auto_publish_min_rating:
+        sector === "sante" || sector === "juridique" ? null : auto === "4" ? 4 : auto === "5" ? 5 : null,
       alert_email: formData.get("alert_email") === "on",
       alert_channel: ["sms", "whatsapp"].includes(channel) ? channel : "none",
       alert_phone: text("alert_phone", 30),
@@ -271,6 +281,12 @@ export async function saveSettingsAction(formData: FormData) {
   revalidatePath("/app", "layout");
   if (error) go("/app/reglages", "erreur", error.message);
   go("/app/reglages", "ok", "Réglages enregistrés.");
+}
+
+export async function hideOnboardingAction() {
+  const { supabase, user } = await requireAccount();
+  await supabase.from("accounts").update({ onboarding_done: true }).eq("id", user.id);
+  revalidatePath("/app");
 }
 
 export async function testPhoneAlertAction() {

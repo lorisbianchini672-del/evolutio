@@ -18,7 +18,36 @@ export type Account = {
   alert_channel: AlertChannel;
   report_email: boolean;
   last_report_at: string | null;
+  last_alert_review_id: string | null;
+  referral_code: string | null;
+  referred_by: string | null;
+  referral_rewarded_at: string | null;
+  onboarding_done: boolean;
   created_at: string;
+};
+
+export type Competitor = {
+  id: string;
+  user_id: string;
+  place_id: string;
+  name: string;
+  address: string;
+  rating: number | null;
+  review_count: number | null;
+  previous_rating: number | null;
+  previous_count: number | null;
+  maps_url: string | null;
+  updated_at: string;
+};
+
+export type GooglePost = {
+  id: string;
+  location_id: string;
+  text: string;
+  status: "draft" | "published" | "error";
+  error: string | null;
+  created_at: string;
+  published_at: string | null;
 };
 
 export type AlertChannel = "none" | "sms" | "whatsapp";
@@ -42,6 +71,7 @@ export type Location = {
   title: string;
   review_url: string | null;
   slug: string;
+  place_id?: string | null;
   is_demo: boolean;
   created_at: string;
 };

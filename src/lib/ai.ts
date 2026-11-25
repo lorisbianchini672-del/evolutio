@@ -1,6 +1,8 @@
 import Anthropic from "@anthropic-ai/sdk";
 import {
   buildInsightsPrompt,
+  buildPostPrompt,
+  fallbackPost,
   buildSystemPrompt,
   buildUserPrompt,
   fallbackReply,
@@ -58,4 +60,23 @@ export async function generateInsights(
     messages: [{ role: "user", content: buildInsightsPrompt(businessName, reviews) }],
   });
   return parseInsights(message.content.map((block) => (block.type === "text" ? block.text : "")).join(""));
+}
+
+/** Publication Google (« Nouveautés ») à partir d'une idée du gérant. */
+export async function generatePost(
+  settings: Pick<ReplySettings, "business_name" | "sector" | "tone">,
+  idea: string,
+): Promise<string> {
+  if (!aiConfigured()) return fallbackPost(idea);
+  if (!client || clientKey !== process.env.ANTHROPIC_API_KEY) {
+    clientKey = process.env.ANTHROPIC_API_KEY as string;
+    client = new Anthropic({ apiKey: clientKey });
+  }
+  const message = await client.messages.create({
+    model: process.env.ANTHROPIC_MODEL || "claude-haiku-5-5",
+    max_tokens: 400,
+    messages: [{ role: "user", content: buildPostPrompt(settings, idea) }],
+  });
+  const text = message.content.map((b) => (b.type === "text" ? b.text : "")).join("").trim();
+  return text || fallbackPost(idea);
 }

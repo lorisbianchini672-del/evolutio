@@ -1,9 +1,11 @@
 import QRCode from "qrcode";
 import { Notice } from "@/components/notice";
+import { CopyButton } from "@/components/copy-button";
 import { SubmitButton } from "@/components/submit-button";
 import { siteUrl } from "@/lib/config";
 import { emailConfigured } from "@/lib/email";
 import { monthStartIso, planOf } from "@/lib/plan";
+import { smsConfigured, whatsappConfigured } from "@/lib/alerts";
 import { loadReport } from "@/lib/report";
 import { requireSubscriber } from "@/lib/session";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -21,6 +23,7 @@ export default async function CollectPage({
   const { supabase, subscription, account } = await requireSubscriber();
   const report = await loadReport(createAdminClient(), account, 0);
   const plan = planOf(subscription);
+  const phoneReady = { sms: smsConfigured(), whatsapp: whatsappConfigured() };
 
   const [{ data: locations }, { count: sentThisMonth }, { data: feedback }] = await Promise.all([
     supabase.from("locations").select("*").order("created_at").returns<Location[]>(),
@@ -104,6 +107,14 @@ export default async function CollectPage({
               <a href={link} className="break-all text-sm link" target="_blank" rel="noreferrer">
                 {link}
               </a>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <CopyButton text={link} label="Copier le lien" />
+                <span className="pill pill-ok">100 % conforme aux règles Google</span>
+              </div>
+              <p className="hint mt-2">
+                Astuce : programmez ce lien sur une carte ou un autocollant NFC (quelques euros, application gratuite
+                « NFC Tools ») : le client approche son téléphone, la page s&apos;ouvre.
+              </p>
               {!location.review_url && (
                 <p className="notice-info mt-3">
                   Établissement de démonstration : le bouton « Laisser un avis sur Google » s&apos;activera une fois la
@@ -114,22 +125,34 @@ export default async function CollectPage({
 
             <form action={sendRequestAction} className="space-y-3 border-t border-stone-200 pt-4">
               <input type="hidden" name="location_id" value={location.id} />
-              <div>
-                <label className="label" htmlFor={`recipient-${location.id}`}>
-                  Demander un avis par e-mail
-                </label>
-                <input
-                  className="input"
-                  id={`recipient-${location.id}`}
-                  name="recipient"
-                  type="email"
-                  placeholder="client@exemple.fr"
-                  required
-                />
+              <div className="grid gap-3 sm:grid-cols-[10rem_1fr]">
+                <div>
+                  <label className="label" htmlFor={`channel-${location.id}`}>
+                    Demander un avis par
+                  </label>
+                  <select className="input" id={`channel-${location.id}`} name="channel" defaultValue="email">
+                    <option value="email">E-mail</option>
+                    {phoneReady.sms && <option value="sms">SMS</option>}
+                    {phoneReady.whatsapp && <option value="whatsapp">WhatsApp</option>}
+                  </select>
+                </div>
+                <div>
+                  <label className="label" htmlFor={`recipient-${location.id}`}>
+                    Adresse e-mail ou numéro
+                  </label>
+                  <input
+                    className="input"
+                    id={`recipient-${location.id}`}
+                    name="recipient"
+                    placeholder="client@exemple.fr ou 06 12 34 56 78"
+                    autoComplete="off"
+                    required
+                  />
+                </div>
               </div>
               <label className="flex items-start gap-2 text-sm text-stone-700">
                 <input type="checkbox" name="is_customer" className="mt-1" required />
-                <span>Cette personne est cliente de mon établissement et m&apos;a donné son adresse.</span>
+                <span>Cette personne est cliente de mon établissement et a accepté que je la contacte.</span>
               </label>
               <SubmitButton className="btn btn-primary">Envoyer la demande</SubmitButton>
               <p className="hint">

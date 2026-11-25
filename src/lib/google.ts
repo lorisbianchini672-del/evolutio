@@ -171,3 +171,74 @@ export async function enableReviewNotifications(accessToken: string, accountName
     },
   );
 }
+
+// ---- Statistiques de la fiche (API Business Profile Performance) -------------------------------
+
+export type PerformanceTotals = { calls: number; directions: number; website: number; views: number };
+
+const PERF_METRICS = {
+  calls: ["CALL_CLICKS"],
+  directions: ["BUSINESS_DIRECTION_REQUESTS"],
+  website: ["WEBSITE_CLICKS"],
+  views: [
+    "BUSINESS_IMPRESSIONS_DESKTOP_MAPS",
+    "BUSINESS_IMPRESSIONS_DESKTOP_SEARCH",
+    "BUSINESS_IMPRESSIONS_MOBILE_MAPS",
+    "BUSINESS_IMPRESSIONS_MOBILE_SEARCH",
+  ],
+} as const;
+
+type PerfResponse = {
+  multiDailyMetricTimeSeries?: {
+    dailyMetricTimeSeries?: { dailyMetric?: string; timeSeries?: { datedValues?: { value?: string }[] } }[];
+  }[];
+};
+
+/** Appels, itinéraires, clics vers le site et vues de la fiche entre deux dates (incluses). */
+export async function fetchPerformance(
+  accessToken: string,
+  locationName: string,
+  start: Date,
+  end: Date,
+): Promise<PerformanceTotals> {
+  const url = new URL(`https://businessprofileperformance.googleapis.com/v1/${locationName}:fetchMultiDailyMetricsTimeSeries`);
+  for (const list of Object.values(PERF_METRICS)) for (const m of list) url.searchParams.append("dailyMetrics", m);
+  const set = (prefix: string, d: Date) => {
+    url.searchParams.set(`dailyRange.${prefix}.year`, String(d.getUTCFullYear()));
+    url.searchParams.set(`dailyRange.${prefix}.month`, String(d.getUTCMonth() + 1));
+    url.searchParams.set(`dailyRange.${prefix}.day`, String(d.getUTCDate()));
+  };
+  set("start_date", start);
+  set("end_date", end);
+  const json = await api<PerfResponse>(accessToken, url.toString());
+  const sums = new Map<string, number>();
+  for (const group of json.multiDailyMetricTimeSeries ?? []) {
+    for (const series of group.dailyMetricTimeSeries ?? []) {
+      const total = (series.timeSeries?.datedValues ?? []).reduce((s, v) => s + Number(v.value ?? 0), 0);
+      sums.set(series.dailyMetric ?? "", (sums.get(series.dailyMetric ?? "") ?? 0) + total);
+    }
+  }
+  const sum = (list: readonly string[]) => list.reduce((s, m) => s + (sums.get(m) ?? 0), 0);
+  return {
+    calls: sum(PERF_METRICS.calls),
+    directions: sum(PERF_METRICS.directions),
+    website: sum(PERF_METRICS.website),
+    views: sum(PERF_METRICS.views),
+  };
+}
+
+// ---- Publications Google (« Nouveautés ») ----------------------------------------------------
+
+export async function createLocalPost(
+  accessToken: string,
+  accountName: string,
+  locationName: string,
+  summary: string,
+): Promise<string | null> {
+  const json = await api<{ name?: string }>(
+    accessToken,
+    `https://mybusiness.googleapis.com/v4/${accountName}/${locationName}/localPosts`,
+    { method: "POST", body: JSON.stringify({ languageCode: "fr", summary: summary.slice(0, 1500), topicType: "STANDARD" }) },
+  );
+  return json.name ?? null;
+}

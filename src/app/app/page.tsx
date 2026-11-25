@@ -1,10 +1,14 @@
 import Link from "next/link";
 import { Notice } from "@/components/notice";
+import { Onboarding } from "@/components/onboarding";
 import { PushSetup } from "@/components/push-setup";
 import { SubmitButton } from "@/components/submit-button";
 import { aiConfigured } from "@/lib/ai";
 import { googleConfigured } from "@/lib/google";
+import { checkReply, type GuardWarning } from "@/lib/guard";
+import { onboardingSteps } from "@/lib/onboarding";
 import { pushConfigured, vapidPublicKey } from "@/lib/push";
+import { recentReplies } from "@/lib/reviews";
 import { requireSubscriber } from "@/lib/session";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Location, Review } from "@/lib/types";
@@ -40,7 +44,17 @@ function formatDate(iso: string): string {
   return new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short", year: "numeric" }).format(new Date(iso));
 }
 
-function ReviewCard({ review, locationTitle, view }: { review: Review; locationTitle: string; view: View }) {
+function ReviewCard({
+  review,
+  locationTitle,
+  view,
+  warnings,
+}: {
+  review: Review;
+  locationTitle: string;
+  view: View;
+  warnings: GuardWarning[];
+}) {
   const published = review.status === "published";
   return (
     <article id={`avis-${review.id}`} className="card rv scroll-mt-20 space-y-4">
@@ -90,6 +104,13 @@ function ReviewCard({ review, locationTitle, view }: { review: Review; locationT
             defaultValue={review.draft_text ?? ""}
             placeholder="Cliquez sur « Rédiger avec l'IA » ou écrivez votre réponse."
           />
+          {warnings.length > 0 && (
+            <ul className="guard" aria-label="Points à vérifier avant de publier">
+              {warnings.map((w) => (
+                <li key={w.code}>{w.message}</li>
+              ))}
+            </ul>
+          )}
           <div className="actions">
             <SubmitButton formAction={publishAction}>
               {review.is_demo ? "Marquer comme publiée" : "Publier sur Google"}
@@ -118,14 +139,14 @@ export default async function InboxPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
-  const { supabase, user } = await requireSubscriber();
+  const { supabase, user, account } = await requireSubscriber();
   const view: View = params.vue === "publies" ? "publies" : params.vue === "tous" ? "tous" : "a-traiter";
 
   let reviewsQuery = supabase.from("reviews").select("*").order("review_created_at", { ascending: false }).limit(100);
   if (view === "publies") reviewsQuery = reviewsQuery.eq("status", "published");
   if (view === "a-traiter") reviewsQuery = reviewsQuery.in("status", ["new", "drafted"]);
 
-  const [{ data: locations }, { data: connection }, { data: reviews }, { count: todoCount }] = await Promise.all([
+  const [{ data: locations }, { data: connection }, { data: reviews }, { count: todoCount }, recent, onboarding] = await Promise.all([
     supabase.from("locations").select("*").order("created_at").returns<Location[]>(),
     createAdminClient()
       .from("google_connections")
@@ -134,6 +155,8 @@ export default async function InboxPage({
       .maybeSingle<{ google_email: string | null }>(),
     reviewsQuery.returns<Review[]>(),
     supabase.from("reviews").select("id", { count: "exact", head: true }).in("status", ["new", "drafted"]),
+    recentReplies(user.id),
+    onboardingSteps(account),
   ]);
 
   const titles = new Map((locations ?? []).map((l) => [l.id, l.title]));
@@ -163,6 +186,8 @@ export default async function InboxPage({
           )}
         </div>
       </div>
+
+      {onboarding && <Onboarding steps={onboarding} />}
 
       {pushConfigured() && <PushSetup publicKey={vapidPublicKey()} compact />}
 
@@ -265,6 +290,16 @@ export default async function InboxPage({
                 review={review}
                 locationTitle={titles.get(review.location_id) ?? "Établissement"}
                 view={view}
+                warnings={
+                  review.status !== "published" && review.draft_text
+                    ? checkReply(review.draft_text, {
+                        sector: account.sector,
+                        privateContact: account.private_contact,
+                        signature: account.signature,
+                        recentReplies: recent,
+                      })
+                    : []
+                }
               />
             ))}
             {!reviews?.length && (

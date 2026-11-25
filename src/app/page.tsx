@@ -7,7 +7,7 @@ import { Calculator } from "@/components/landing/calculator";
 import { LiveDemo } from "@/components/landing/live-demo";
 import { Simulator } from "@/components/landing/simulator";
 import { LogoMark } from "@/components/logo-mark";
-import { APP_NAME, CITY, CONTACT_EMAIL, PLAN_IDS, PLANS, TRIAL_DAYS } from "@/lib/config";
+import { APP_NAME, CITY, CONTACT_EMAIL, PLAN_IDS, PLANS, supportWhatsappUrl, TRIAL_DAYS } from "@/lib/config";
 import { TESTIMONIALS } from "@/lib/testimonials";
 
 const TRADES = ["Boulangeries", "Restaurants", "Plombiers", "Instituts de beauté", "Agences immobilières", "Garages", "Fleuristes", "Coiffeurs", "Électriciens", "Caves à vin"];
@@ -94,7 +94,10 @@ export default function LandingPage() {
               </a>
             </div>
             <p className="fine rise" style={{ animationDelay: "1.05s" }}>
-              Sans carte bancaire. Sans engagement.
+              Sans carte bancaire. Sans engagement.{" "}
+              <Link href="/audit" className="hero-audit">
+                Ou testez votre fiche gratuitement →
+              </Link>
             </p>
           </div>
           <div className="rise" style={{ animationDelay: "1.1s" }}>
@@ -221,6 +224,56 @@ export default function LandingPage() {
           </div>
         </section>
 
+        <section aria-labelledby="t-audit" style={{ paddingTop: 0 }}>
+          <div className="wrap">
+            <div className="audit-promo" data-rv>
+              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                <p className="eyebrow">Gratuit, en 10 secondes</p>
+                <h2 id="t-audit" className="h-lg">
+                  Votre fiche Google, <span className="serif gold-deep">notée sur 100.</span>
+                </h2>
+                <p className="lead">Note, avis, photos, horaires, et votre rang face aux établissements du même type autour de vous.</p>
+                <div className="cta-row" style={{ justifyContent: "flex-start" }}>
+                  <Link href="/audit" className="btn btn-light btn-lg">
+                    Lancer l&apos;audit gratuit
+                  </Link>
+                </div>
+              </div>
+              <div className="audit-promo-score" aria-hidden="true">
+                <strong>72</strong>
+                <span>/100</span>
+                <i>Exemple</i>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section aria-labelledby="t-regles" style={{ paddingTop: 0 }}>
+          <div className="wrap" style={{ display: "flex", flexDirection: "column", gap: 28 }}>
+            <h2 id="t-regles" className="h-md" data-rv>
+              Les règles de Google, <span className="serif gold">respectées par construction.</span>
+            </h2>
+            <div className="rules" data-rv>
+              <div>
+                <b>Le même lien pour tous</b>
+                <p>Aucun tri des clients satisfaits : c&apos;est interdit par Google, et ça protège votre fiche.</p>
+              </div>
+              <div>
+                <b>Aucune récompense</b>
+                <p>Pas de café offert contre un avis. Evolutio vous aide à demander, simplement, au bon moment.</p>
+              </div>
+              <div>
+                <b>Aucun faux avis</b>
+                <p>Jamais. Evolutio répond aux vrais avis de vos vrais clients.</p>
+              </div>
+              <div>
+                <b>Secret professionnel</b>
+                <p>Santé, droit, expertise comptable : des réponses qui ne confirment rien, jamais publiées sans vous.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <section id="tarifs" aria-labelledby="t-tarifs" style={{ paddingTop: 0, scrollMarginTop: 70 }}>
           <div className="wrap" style={{ display: "flex", flexDirection: "column", gap: 44 }}>
             <div data-rv style={{ textAlign: "center", display: "flex", flexDirection: "column", gap: 14, alignItems: "center" }}>
@@ -228,6 +281,11 @@ export default function LandingPage() {
               <h2 id="t-tarifs" className="h-lg">
                 Simple, mensuel, <span className="serif gold-deep">sans engagement.</span>
               </h2>
+              <ul className="trust">
+                <li>Essai {TRIAL_DAYS} jours sans carte bancaire</li>
+                <li>Résiliable en un clic depuis votre espace</li>
+                <li>Prix affiché, pas de devis</li>
+              </ul>
             </div>
             <div className="plans">
               {PLAN_IDS.map((id, i) => {
@@ -370,6 +428,15 @@ export default function LandingPage() {
           <span>
             © {new Date().getFullYear()} {APP_NAME}
           </span>
+          <nav className="foot-links" aria-label="Liens">
+            <Link href="/audit">Audit gratuit</Link>
+            <Link href="/partenaires">Agences et partenaires</Link>
+            {supportWhatsappUrl() && (
+              <a href={supportWhatsappUrl() as string} target="_blank" rel="noreferrer">
+                Nous écrire sur WhatsApp
+              </a>
+            )}
+          </nav>
           <span>Service indépendant, sans lien avec Google.</span>
         </div>
       </footer>

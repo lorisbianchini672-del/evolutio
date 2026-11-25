@@ -19,6 +19,13 @@ export const TRIAL_DAYS = 14;
 export const CONTACT_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "";
 export const CITY = "Lyon";
 
+/** Numéro WhatsApp du support (format international, chiffres seuls, ex. 33612345678). Vide : bouton masqué. */
+export const SUPPORT_WHATSAPP = (process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP ?? "").replace(/\D/g, "");
+
+export function supportWhatsappUrl(message = "Bonjour, j'ai une question sur Evolutio."): string | null {
+  return SUPPORT_WHATSAPP ? `https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent(message)}` : null;
+}
+
 export type PlanId = "essentiel" | "pro" | "multi";
 
 export type Plan = {
@@ -92,6 +99,7 @@ export const SECTORS = {
   beaute: "Institut de beauté, bien-être",
   immobilier: "Agence immobilière",
   sante: "Professionnel de santé",
+  juridique: "Avocat, notaire, expert-comptable",
   autre: "Autre activité",
 } as const;
 export type Sector = keyof typeof SECTORS;

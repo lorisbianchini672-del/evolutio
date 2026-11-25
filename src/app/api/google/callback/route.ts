@@ -103,7 +103,12 @@ export async function GET(request: NextRequest) {
 
     for (const { accountName, location } of found) {
       const title = location.title?.trim() || "Établissement";
-      const values = { google_account_name: accountName, title, review_url: reviewUrlOf(location) };
+      const values = {
+        google_account_name: accountName,
+        title,
+        review_url: reviewUrlOf(location),
+        ...(location.metadata?.placeId ? { place_id: location.metadata.placeId } : {}),
+      };
       const knownId = known.get(location.name);
       if (knownId) {
         await admin.from("locations").update(values).eq("id", knownId);

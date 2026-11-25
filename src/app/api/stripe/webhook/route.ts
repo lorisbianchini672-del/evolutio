@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import type Stripe from "stripe";
+import { rewardReferralOnInvoice } from "@/lib/referral";
 import { getStripe, syncSubscription } from "@/lib/stripe";
 
 // Stripe appelle cette adresse à chaque changement d'abonnement (essai, paiement, échec, résiliation).
@@ -32,6 +33,9 @@ export async function POST(request: NextRequest) {
         }
         break;
       }
+      case "invoice.paid":
+        await rewardReferralOnInvoice(stripe, event.data.object);
+        break;
       default:
         break;
     }

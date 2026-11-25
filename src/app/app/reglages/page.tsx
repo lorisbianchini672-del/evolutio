@@ -1,7 +1,11 @@
+import Link from "next/link";
 import { Notice } from "@/components/notice";
+import { CopyButton } from "@/components/copy-button";
 import { PushSetup } from "@/components/push-setup";
+import { ShareLink } from "@/components/share-link";
+import { ensureReferralCode, REFERRAL_REWARD_MONTHS } from "@/lib/referral";
 import { SubmitButton } from "@/components/submit-button";
-import { SECTORS, TONES } from "@/lib/config";
+import { SECTORS, siteUrl, TONES } from "@/lib/config";
 import { googleConfigured } from "@/lib/google";
 import { requireAccount } from "@/lib/session";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -34,10 +38,23 @@ export default async function SettingsPage({
   ]);
 
   const phoneReady = smsConfigured() || whatsappConfigured();
+  const referralCode = await ensureReferralCode(account.id, account.referral_code ?? null).catch(() => null);
+  const referralUrl = referralCode ? `${siteUrl()}/inscription?parrain=${referralCode}` : `${siteUrl()}/inscription`;
+  const { count: referrals } = await createAdminClient()
+    .from("accounts")
+    .select("id", { count: "exact", head: true })
+    .eq("referred_by", account.id);
 
   return (
     <div className="space-y-6">
       <h1 className="page-title">Réglages</h1>
+      <Link href="/app/abonnement" className="card settings-link">
+        <span>
+          <strong>Abonnement et facturation</strong>
+          <span className="hint">Formule, moyen de paiement, factures, résiliation en un clic.</span>
+        </span>
+        <span aria-hidden="true">›</span>
+      </Link>
       <Notice params={params} />
 
       <form action={saveSettingsAction} className="card space-y-5">
@@ -149,6 +166,27 @@ export default async function SettingsPage({
         </div>
         <SubmitButton>Enregistrer</SubmitButton>
       </form>
+
+      <section className="card report space-y-3" aria-labelledby="t-parrain">
+        <p className="reply-k">Parrainage</p>
+        <h2 id="t-parrain" className="text-lg font-semibold">
+          Recommandez Evolutio à un commerçant
+        </h2>
+        <p className="text-sm text-stone-600">
+          Dès son premier paiement, vous recevez chacun {REFERRAL_REWARD_MONTHS} mois offert sur votre formule.
+          {referrals ? ` Déjà ${referrals} commerçant${referrals > 1 ? "s" : ""} inscrit${referrals > 1 ? "s" : ""} grâce à vous.` : ""}
+        </p>
+        <p className="break-all text-sm">
+          <span className="link">{referralUrl}</span>
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <ShareLink
+            url={referralUrl}
+            text="J'utilise Evolutio pour répondre à mes avis Google en un geste. Avec ce lien, on a chacun un mois offert :"
+          />
+          <CopyButton text={referralUrl} label="Copier" />
+        </div>
+      </section>
 
       <section className="card space-y-3">
         <h2 className="font-semibold">Notifications sur ce téléphone</h2>

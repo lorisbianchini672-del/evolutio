@@ -20,10 +20,22 @@ export function normalizePhone(raw: string): string | null {
   return null;
 }
 
-export function phoneAlertText(input: { locationTitle: string; rating: number; reviewer: string | null; comment: string | null; url: string }): string {
+export function phoneAlertText(input: {
+  locationTitle: string;
+  rating: number;
+  reviewer: string | null;
+  comment: string | null;
+  url: string;
+  draft?: string;
+}): string {
   const stars = "★".repeat(input.rating) + "☆".repeat(5 - input.rating);
   const quote = input.comment ? ` « ${input.comment.replace(/\s+/g, " ").trim().slice(0, 140)}${input.comment.length > 140 ? "…" : ""} »` : "";
-  return `Evolutio : avis ${stars} pour ${input.locationTitle}${input.reviewer ? ` (${input.reviewer})` : ""}.${quote} Réponse prête : ${input.url}`;
+  const head = `Evolutio : avis ${stars} pour ${input.locationTitle}${input.reviewer ? ` (${input.reviewer})` : ""}.${quote}`;
+  if (input.draft) {
+    const draft = input.draft.replace(/\s+/g, " ").trim();
+    return `${head}\n\nRéponse proposée : « ${draft.slice(0, 320)}${draft.length > 320 ? "…" : ""} »\n\nRépondez OUI pour la publier, ou modifiez-la ici : ${input.url}`;
+  }
+  return `${head} Réponse prête : ${input.url}`;
 }
 
 /** Envoie l'alerte sur le canal choisi par le commerçant. Renvoie une erreur lisible plutôt que de lever. */
@@ -32,9 +44,18 @@ export async function sendPhoneAlert(
   text: string,
 ): Promise<{ sent: boolean; error?: string }> {
   if (account.alert_channel === "none") return { sent: false, error: "Aucun canal choisi." };
-  const to = normalizePhone(account.alert_phone);
+  return sendPhoneMessage(account.alert_channel, account.alert_phone, text);
+}
+
+/** Envoie un SMS ou un message WhatsApp avec Twilio. */
+export async function sendPhoneMessage(
+  channel: "sms" | "whatsapp",
+  phone: string,
+  text: string,
+): Promise<{ sent: boolean; error?: string }> {
+  const to = normalizePhone(phone);
   if (!to) return { sent: false, error: "Numéro de téléphone invalide." };
-  const whatsapp = account.alert_channel === "whatsapp";
+  const whatsapp = channel === "whatsapp";
   if (whatsapp ? !whatsappConfigured() : !smsConfigured()) {
     return { sent: false, error: `${whatsapp ? "WhatsApp" : "SMS"} non configuré : ajoutez les clés Twilio dans l'installation.` };
   }
@@ -58,4 +79,9 @@ export async function sendPhoneAlert(
   } catch (err) {
     return { sent: false, error: err instanceof Error ? err.message : "Envoi impossible." };
   }
+}
+
+/** Message de demande d'avis envoyé au client du commerçant. Le même pour tous les clients (règles Google). */
+export function reviewRequestText(businessName: string, link: string): string {
+  return `${businessName} vous remercie de votre visite. Votre avis, quel qu'il soit, nous aide beaucoup : ${link}`;
 }

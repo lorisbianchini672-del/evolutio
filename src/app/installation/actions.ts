@@ -24,6 +24,7 @@ const ALLOWED = [
   "TWILIO_AUTH_TOKEN",
   "TWILIO_SMS_FROM",
   "TWILIO_WHATSAPP_FROM",
+  "GOOGLE_PLACES_API_KEY",
 ];
 
 function done(key: "ok" | "erreur", message: string, anchor = ""): never {

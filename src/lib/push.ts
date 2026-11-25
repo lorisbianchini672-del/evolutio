@@ -20,7 +20,15 @@ function subject(): string {
   return url.startsWith("https://") ? url : "mailto:notifications@evolutio.invalid";
 }
 
-export type PushPayload = { title: string; body: string; url: string; tag?: string };
+export type PushPayload = {
+  title: string;
+  body: string;
+  url: string;
+  tag?: string;
+  reviewId?: string;
+  /** Affiche le bouton « Publier » dans la notification (Android, ordinateur). */
+  quickPublish?: boolean;
+};
 
 type Row = { id: string; endpoint: string; p256dh: string; auth: string };
 

@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { Notice } from "@/components/notice";
 import { PushSetup } from "@/components/push-setup";
+import { QuickSwipe } from "@/components/quick-swipe";
+import { VoiceInstruction } from "@/components/voice-instruction";
+import { checkReply } from "@/lib/guard";
+import { recentReplies } from "@/lib/reviews";
 import { SubmitButton } from "@/components/submit-button";
 import { pushConfigured, vapidPublicKey } from "@/lib/push";
 import { requireSubscriber } from "@/lib/session";
@@ -27,8 +31,8 @@ export default async function QuickPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
-  const { supabase } = await requireSubscriber();
-  const [{ data: queue }, { data: locations }] = await Promise.all([
+  const { supabase, account, user } = await requireSubscriber();
+  const [{ data: queue }, { data: locations }, recent] = await Promise.all([
     supabase
       .from("reviews")
       .select("*")
@@ -38,6 +42,7 @@ export default async function QuickPage({
       .limit(50)
       .returns<Review[]>(),
     supabase.from("locations").select("id, title").returns<Pick<Location, "id" | "title">[]>(),
+    recentReplies(user.id),
   ]);
 
   const list = queue ?? [];
@@ -67,6 +72,14 @@ export default async function QuickPage({
   }
 
   const low = review.rating <= 3;
+  const warnings = review.draft_text
+    ? checkReply(review.draft_text, {
+        sector: account.sector,
+        privateContact: account.private_contact,
+        signature: account.signature,
+        recentReplies: recent,
+      })
+    : [];
   return (
     <div className="quick">
       <div className="quick-top">
@@ -92,6 +105,11 @@ export default async function QuickPage({
 
       <Notice params={params} />
 
+      <QuickSwipe
+        canPublish={Boolean(review.draft_text)}
+        nextHref={next ? `/app/rapide?avis=${next.id}` : null}
+        publishButtonId="quick-publish"
+      >
       <article className={`card quick-card${low ? " is-low" : ""}`}>
         <header className="rv-head">
           <span className="rv-avatar" aria-hidden="true">
@@ -113,6 +131,7 @@ export default async function QuickPage({
           {review.comment ?? <span className="text-stone-500">Note laissée sans commentaire.</span>}
         </p>
       </article>
+      </QuickSwipe>
 
       <form className="quick-form">
         <input type="hidden" name="review_id" value={review.id} />
@@ -130,9 +149,17 @@ export default async function QuickPage({
           defaultValue={review.draft_text ?? ""}
           placeholder="Touchez « Rédiger avec l'IA », ou écrivez votre réponse."
         />
+        {warnings.length > 0 && (
+          <ul className="guard" aria-label="Points à vérifier avant de publier">
+            {warnings.map((w) => (
+              <li key={w.code}>{w.message}</li>
+            ))}
+          </ul>
+        )}
+        <VoiceInstruction />
         <div className="quick-bar">
           {review.draft_text ? (
-            <SubmitButton formAction={publishAction} className="btn btn-primary quick-main">
+            <SubmitButton formAction={publishAction} className="btn btn-primary quick-main" id="quick-publish">
               {review.is_demo ? "Marquer comme publiée" : "Publier sur Google"}
             </SubmitButton>
           ) : (
@@ -143,7 +170,7 @@ export default async function QuickPage({
           <div className="quick-sub">
             {review.draft_text ? (
               <SubmitButton formAction={draftAction} className="btn btn-secondary">
-                Autre version
+                Réécrire
               </SubmitButton>
             ) : (
               <SubmitButton formAction={publishAction} className="btn btn-secondary">
