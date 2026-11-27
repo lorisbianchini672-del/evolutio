@@ -3465,3 +3465,171 @@ body:has(.appx) {
     rgba(0, 0, 0, 0.25);
   text-align: center;
 }
+
+/* ======================================================================
+   Sobriété : on retire les effets qui font « site généré par IA »
+   (dégradés en blob, halos lumineux, projecteur qui suit la souris,
+   petits titres en majuscules espacées avec pastille, ombres colorées).
+   On garde la laque noire du héros, l'ambre et les fines bordures.
+   ====================================================================== */
+
+/* Petits titres : phrase normale, sans pastille ni police machine à écrire */
+.lp .eyebrow,
+.lp .sec-dark .eyebrow {
+  display: block;
+  gap: 0;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  color: var(--gold);
+}
+.lp .eyebrow::before {
+  content: none;
+}
+
+/* Mots mis en avant : simple couleur, sans italique ni reflet */
+.lp .serif,
+.lp .shine,
+.lp .gold,
+.lp .gold-deep {
+  font-family: inherit;
+  font-style: normal;
+  background: none;
+  animation: none;
+  color: #a8a398;
+}
+
+/* Plus de blobs ni de projecteur qui suit la souris */
+.lp .tile::before,
+.lp .final .mesh,
+.lp .hero .halo {
+  display: none !important;
+}
+.lp .tile.goldy {
+  background: #e3a964;
+  color: #15130f;
+}
+.lp .tile.goldy p {
+  color: rgba(21, 19, 15, 0.72);
+}
+.lp .tile.dark {
+  background: rgba(255, 255, 255, 0.03);
+}
+.lp .tile:hover {
+  box-shadow: none;
+}
+.lp .final {
+  background: #0b0b0d;
+  border-top: 1px solid var(--hair);
+}
+
+/* Cartes : surfaces unies, sans lueur d'angle */
+.lp .live,
+.lp .calc,
+.lp .local,
+.lp .audit-promo,
+.lp .audit-card,
+.lp .audit-cta {
+  background: rgba(255, 255, 255, 0.025);
+}
+.lp .local {
+  border-color: var(--hair);
+}
+.lp .audit-cta {
+  background: rgba(255, 255, 255, 0.04);
+}
+.lp .rules b::before,
+.lp .trust li::before {
+  content: none;
+}
+.lp .trust li {
+  background: none;
+}
+
+/* Petites étiquettes : texte normal */
+.lp .live-k,
+.lp .ex-k,
+.lp .audit-promo-score i {
+  font-family: inherit;
+  font-size: 13px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* Espace client : mêmes règles */
+.appx-glow {
+  display: none;
+}
+.appx .report {
+  background: var(--x-card);
+}
+.appx .push-cta {
+  background: rgba(227, 169, 100, 0.07);
+}
+.appx .stars-lg {
+  text-shadow: none;
+}
+.appx-tabs a[aria-current="page"] svg {
+  filter: none;
+}
+.appx .quick-check {
+  background: var(--x-amber);
+  box-shadow: none;
+}
+.appx .qr,
+.appx-solo-logo {
+  box-shadow: none;
+}
+.appx .btn-primary {
+  box-shadow: none;
+}
+.appx .reply {
+  background: rgba(227, 169, 100, 0.06);
+}
+.appx .reply-k,
+.appx .tag,
+.appx .report-action span {
+  font-family: inherit;
+  font-size: 12.5px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.appx .rv-avatar {
+  background: rgba(255, 255, 255, 0.08);
+}
+.appx .bar,
+.appx .quick-progress span,
+.appx .onboard-bar span {
+  background: var(--x-amber);
+}
+.appx .col {
+  background: var(--x-amber);
+}
+
+/* Sobriété, suite : titres d'une seule couleur, puces simples */
+.lp .serif,
+.lp .shine,
+.lp .gold,
+.lp .gold-deep {
+  color: inherit !important;
+}
+.lp .plan li::before {
+  content: "–";
+  color: #8a857b;
+  font-size: 1em;
+  line-height: 1.5;
+}
+.lp .marquee b {
+  color: #5d5a54 !important;
+  font-size: 0 !important;
+}
+.lp .marquee b::after {
+  content: "·";
+  font-size: 22px;
+}
+.lp .plan.hot {
+  background: #141416 !important;
+  box-shadow: none !important;
+}
