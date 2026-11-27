@@ -371,7 +371,7 @@ export default function LandingPage() {
                   <b>1</b> Connexion de votre fiche Google
                 </li>
                 <li>
-                  <b>2</b> Votre ton, votre signature, vos consignes
+                  <b>2</b> Un ton qui se calibre seul sur vos anciennes réponses
                 </li>
                 <li>
                   <b>3</b> QR code et affiche pour le comptoir
